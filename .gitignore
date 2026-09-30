@@ -1,0 +1,10 @@
+node_modules/
+dist/
+client/dist/
+data/*
+!data/.gitkeep
+.env
+*.log
+.DS_Store
+Thumbs.db
+.claude/launch.json

@@ -183,3 +183,51 @@ PWA: `manifest.webmanifest` (name Virginia, standalone, theme `#1B2A49`), `apple
 - Browser at 375 px: Today, Board drag, Capture form, Review accept, Agenda copy all work with no horizontal scroll.
 - Auth: every `/api/*` and `/mcp/*` route returns 401 without credentials (except health/login); wrong MCP token → 401.
 - No `any` leaks across `shared/types.ts` boundaries; no unhandled promise rejections in the server log during the smoke run.
+
+## 10. Deviations (as built — integration pass, 2026-09-30)
+
+Where the implementation knowingly departs from, or adds to, the sections above. Everything not listed here follows the spec as written; `shared/types.ts` remains authoritative where §4's prose is looser than the type (e.g. `ImportCommitResult` also carries `captureId`).
+
+**Contract (`shared/types.ts`, §4/§6)**
+- `Bootstrap` gained `anthropicModel` (the model id in use, shown in Settings → AI) and `mcpUrl` — the full connector URL `${origin}/mcp/${MCP_TOKEN}` that §6 requires the Settings page to show. The URL embeds the token, so `/api/bootstrap` stays behind `requireAuth`; it is `null` until `MCP_TOKEN` is set. The origin honours `X-Forwarded-Proto` / `X-Forwarded-Host` (Railway).
+
+**Auth / API (§0.4, §4)**
+- `GET /api/auth/me` is behind auth like every other route: anonymous callers get 401, which the login page treats as "not signed in".
+- The session cookie's `Secure` flag is set when the request is https (directly or via `X-Forwarded-Proto`) or `NODE_ENV=production`, and never for localhost — §4's "Secure (when not localhost)" reads as this rule, so a plain-http login from a phone on the LAN (`http://192.168.x.x:3000`) in dev still works (a Secure cookie over http would never come back).
+- `DISABLE_AUTH=1` together with `NODE_ENV=production` is refused at boot (`loadConfig` throws): the bypass is dev-only in fact, not only by the §0.4 warning.
+- `/api/*` and `/mcp/*` request bodies are capped at 96 MB (`hono/body-limit`; 8 × 10 MB images plus overhead) with a JSON 413 before anything is buffered. The dev request logger masks the `/mcp/<token>` path segment.
+- `POST /api/captures` also accepts a JSON body (`{ text, context, defaultDivisionCode, title }`) besides multipart.
+- Uploads are typed by their first bytes (JPEG, PNG, GIF, WebP, HEIC/HEIF): a mislabelled image is stored as what it really is, anything that is not a recognisable image is 422 even when labelled `image/png`, and `GET /api/captures/:id/files/:fileId` sends `X-Content-Type-Options: nosniff`.
+- Kind inference: text in which at least half of the non-empty lines carry a tag (or sit indented under one) is `text` however long; the 1500-character transcript heuristic applies to untagged material only.
+- Re-extract drops drafts whose source line was already accepted or rejected on that capture (same excerpt, or `proposalSimilarity` ≥ 0.75) and records how many it skipped as a capture note, so "Accept all" after a re-extract never creates duplicates. A reviewed (or discarded) capture returns to `pending` only when a new proposal was actually inserted.
+- A pending capture with nothing left to review — after extraction as well as after accept / reject — is filed as `reviewed`, so the Inbox badge / `pendingCaptures` never count captures with zero proposals. A failed extraction keeps the capture's status and sets `error`.
+- Proposals of a discarded capture can no longer be edited, accepted or rejected (409 `Capture was discarded`); a re-extract that finds new lines re-opens the capture.
+- `TodayView.dueSoon` covers today through today + 6 (seven days counting today). The Today buckets apply the "me" filter — owner is me or unowned — to overdue / dueSoon / highPriority; `unowned` = active, no owner, no division, not personal.
+- The `is_me` person's agenda includes unowned items (a blank owner on `A:` means Brandon).
+- `POST /api/items/reorder` takes the final order of the items the client could see — the whole column, or the subset a filtered board (division / owner / category / personal / text, `/brands/:code`, the 30-day Done window) shows. The listed ids are spliced into the column's current order: unlisted items keep their relative positions, listed items already in the column take the slots those items occupied (in the new order), items arriving from another column land next to their listed neighbours (top of the column when there is none), and the whole column is renumbered 0..n−1.
+- Rank / ordering changes (drag-reorder, `PATCH {rank}`) are not journaled in `item_events`; §3's "every create/status/edit/comment" is exactly that list, and board drags would otherwise flood an item's history.
+- Empty strings in nullable fields are coerced to null. `captures` has an extra `notes` column (JSON array) holding the extractor notes plus `Model: <id>`.
+- `POST /api/import/commit` accepts an optional `filename`, used to title the provenance capture (`Import: brain.xlsm`).
+
+**AI extraction (§5)**
+- Without `ANTHROPIC_API_KEY` the capture note reads "AI not configured — only explicitly tagged lines were parsed" and `model` is `rule-parser`. `server/ai/grammar.ts` is the only deterministic parser: the interim `server/lib/taggedLines.ts` fallback was removed and the captures route defaults to `createExtractor({ apiKey: null })` when no extractor is injected (tests), so tests and production parse identically.
+- Rule-parser judgment calls: lower-case `a:` / `a -` are tags but `(a)` / `a)` are not (list enumerators); a bare `mm/dd` anywhere on a tagged line is a due date; year-less dates more than 30 days in the past roll to next year; the first word of a title is capitalised; a division code is stripped from the title wherever it appears (the `sourceExcerpt` keeps the original line).
+- A `refusal` stop reason yields zero proposals even when tagged lines exist, with the explanation as a capture note.
+- Without a key, the capture notes also name the untagged lines the rule parser skipped (up to three, then a count), so a line such as `PTD Renew passport by 11/1` never disappears silently — `PTD` / `personal` is a modifier on a tagged line (`A: PTD Renew passport by 11/1`), not a tag of its own.
+- HEIC/HEIF uploads are accepted and stored (§4) but not sent to the model (the API does not take them); the capture gets a per-file note. The client's file inputs therefore list only JPEG/PNG/WebP/GIF so iOS transcodes HEIC to JPEG on upload. Images over 5 MB are likewise stored but skipped with a note.
+
+**MCP (§6)**
+- Stateless Streamable HTTP with JSON responses (`enableJsonResponse: true`) rather than SSE; `GET` and `DELETE /mcp/:token` answer 405 (`Allow: POST`); a POST must send `Accept: application/json, text/event-stream` or the transport answers 406.
+- Extra read-only tool `get_item { id }`; `list_reference` also returns `today` and `me`; `get_today` includes `today`; `add_items` is all-or-nothing (one transaction).
+
+**Import (§7)**
+- Rows without a Note are dropped rather than surfaced; Parking Lot rows whose Status is Complete become `Done` (not `Parked`); legacy `.xls` → 422 (accepted: `.xlsx`, `.xlsm`, `.csv`, `.tsv`).
+- Division matching also uses an alias vocabulary ("Kitchen & Bath - Install" → K&B-I, "Reimer" → RF, …) and unique token overlap against the live divisions; a division of kind `personal` sets `isPersonal` and clears `divisionCode`.
+- A numeric Due Date cell is a date only when the serial is plausible (20000 ≤ serial < 80000, i.e. 1954..2119, the same window the text path uses); any other number surfaces as an "invalid due date" warning in the preview instead of a 1900 date.
+
+**Client (§8)**
+- Board cards open with a pointer tap; Enter/Space on a focused card starts a keyboard drag (dnd-kit) instead of opening the drawer. List rows elsewhere are fully keyboard-operable.
+- Settings → Connector shows the full URL masked by default with Reveal / Copy controls (the token is the credential; nothing else is needed in Claude's connector dialog).
+- Compact controls (small buttons, segmented radios, filter chips) are 44 px tall — and at least 44 px wide for one-letter options — below the `md` breakpoint (§0.5) and shrink to their dense size only on desktop.
+- The SPA fallback answers 404 for asset-like paths (`/assets/*`, `/icons/*`, `/favicon.ico`, `/*.png|js|css|…`) instead of serving `index.html`, so a broken asset link is visible in devtools. The manifest lists 192 × 192 and 512 × 512 PNG icons (`purpose: any maskable`) for Android installability alongside the SVG and the 180 px apple-touch-icon.
+- The Board's due-date chip uses the same "soon" window as Today's *Due this week* bucket (`DUE_SOON_DAYS` from `shared/agenda.ts`: today .. today + 6); dragging a card into Done sets `completedAt` optimistically so the card stays in the collapsed Done column while the reorder saves.

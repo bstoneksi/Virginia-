@@ -47,7 +47,7 @@ Redeploys happen automatically on every push to the default branch.
 ## Connect the Virginia project in Claude
 
 1. Claude.ai → *Settings → Connectors → Add custom connector*.
-2. Name: `Virginia tracker`. URL: `https://<your-domain>/mcp/<MCP_TOKEN>` (the token is the secret; never paste this URL anywhere public).
+2. Name: `Virginia tracker`. URL: `https://<your-domain>/mcp/<MCP_TOKEN>` (the token is the secret; never paste this URL anywhere public). The app shows this exact URL under *Settings → Connector* with a Copy button, so you never have to assemble it by hand. No OAuth or extra header is needed.
 3. In the *Virginia - Executive Assistant* project, enable the connector. Claude can then call `list_items`, `add_items`, `update_item`, `get_agenda`, `get_today`, `search`, `list_reference`, `add_brief`.
 4. Rotate the token any time by changing `MCP_TOKEN` in Railway and updating the connector URL.
 

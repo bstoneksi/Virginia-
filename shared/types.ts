@@ -259,7 +259,14 @@ export interface Bootstrap {
   initiatives: Initiative[];
   me: Person | null;
   aiConfigured: boolean;
+  /** Model id extraction uses (ANTHROPIC_MODEL, default claude-opus-5-5) — shown in Settings → AI. */
+  anthropicModel: string;
   mcpConfigured: boolean;
+  /**
+   * Full connector URL to paste into Claude (`${origin}/mcp/${MCP_TOKEN}`, SPEC §6), or null when MCP_TOKEN is unset.
+   * It embeds the secret token, so the server only returns it to an authenticated session.
+   */
+  mcpUrl: string | null;
   version: string;
 }
 

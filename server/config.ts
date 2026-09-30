@@ -51,6 +51,11 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const appPassword = env.APP_PASSWORD ?? "";
   const sessionSecret = env.SESSION_SECRET ?? "";
 
+  // SPEC §0.4: the bypass is for local dev only. A production process (Railway sets NODE_ENV=production
+  // via the Dockerfile) must never come up without a login, whatever a copied .env says.
+  if (isProduction && disableAuth) {
+    throw new Error("DISABLE_AUTH is not allowed with NODE_ENV=production — set APP_PASSWORD and SESSION_SECRET instead");
+  }
   if (!disableAuth) {
     if (!appPassword || appPassword === "change-me") {
       throw new Error("APP_PASSWORD must be set to a real passphrase (or set DISABLE_AUTH=1 for local dev)");

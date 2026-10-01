@@ -39,8 +39,8 @@ Prerequisites: a GitHub repo containing this code, a Railway account, an Anthrop
    | `ANTHROPIC_MODEL` | `claude-opus-5-5` (default; `claude-sonnet-5-5` is cheaper) |
    | `MCP_TOKEN` | 32+ random characters; this becomes part of the connector URL |
    | `RESEND_API_KEY` | from resend.com → API Keys (free tier); enables the emailed morning brief. Leave unset to keep the brief in the app only |
-   | `BRIEF_EMAIL_TO` | the address the brief is sent to (your own; default `bstone@teamksi.com`) |
-   | `BRIEF_EMAIL_FROM` | `Virginia <onboarding@resend.dev>` (default; Resend's onboarding sender only delivers to the account's own sign-up address) or an address on a domain you verified in Resend |
+   | `BRIEF_EMAIL_TO` | the address the brief is sent to (your own; the wizard defaults it to the owner email in `assistant.config.json`) |
+   | `BRIEF_EMAIL_FROM` | `<your assistant name> <onboarding@resend.dev>` (default; Resend's onboarding sender only delivers to the account's own sign-up address) or an address on a domain you verified in Resend |
    | `BRIEF_TIME` | `07:00` (default) — 24-hour local time, America/Detroit |
    | `BRIEF_DAYS` | `weekdays` (default), `daily`, or a list like `Mon,Wed,Fri` |
    | `BRIEF_ENABLED` | `1` (default); `0` turns the schedule off (the Briefs page and `run_daily_brief` can still run it by hand) |

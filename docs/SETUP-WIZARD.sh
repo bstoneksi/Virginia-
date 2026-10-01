@@ -296,9 +296,13 @@ DEFAULT_TO=$(node -e 'try{const c=require("./assistant.config.json");process.std
 [[ -n "$DEFAULT_TO" && -z "$(_existing BRIEF_EMAIL_TO || true)" ]] && write_env BRIEF_EMAIL_TO "$DEFAULT_TO"
 ask BRIEF_EMAIL_TO "Send the brief to which address?"
 write_env BRIEF_EMAIL_TO "$BRIEF_EMAIL_TO"
+FROM_NAME=$(node -e 'try{const c=require("./assistant.config.json");process.stdout.write(c.assistant&&c.assistant.name?c.assistant.name:"Assistant")}catch(e){process.stdout.write("Assistant")}' 2>/dev/null || echo Assistant)
+[[ -z "$(_existing BRIEF_EMAIL_FROM || true)" ]] && write_env BRIEF_EMAIL_FROM "$FROM_NAME <onboarding@resend.dev>"
+write_env BRIEF_ENABLED "1"
 write_env BRIEF_TIME "07:00"
-write_env BRIEF_DAYS "weekdays"
-note "BRIEF_TIME and BRIEF_DAYS are set to 07:00 on weekdays; change them in .env / Railway later if you like."
+write_env BRIEF_DAYS "Mon-Fri"
+note "The brief runs at 07:00 Mon-Fri (BRIEF_TIME / BRIEF_DAYS; 'daily' = every day). Resend's onboarding sender only delivers"
+note "to the address you signed up with; verify your own domain in Resend later to send from a KSI address."
 pause
 
 # ── 5 ─────────────────────────────────────────────────────────────────────
@@ -330,8 +334,12 @@ if confirm "Show the values on screen now (they include your secrets)?"; then
   printf '  ANTHROPIC_MODEL=%s\n'   "$(_existing ANTHROPIC_MODEL || echo claude-opus-5-5)"
   printf '  RESEND_API_KEY=%s\n'    "$(_existing RESEND_API_KEY || true)"
   printf '  BRIEF_EMAIL_TO=%s\n'    "$(_existing BRIEF_EMAIL_TO || true)"
+  printf '  BRIEF_EMAIL_FROM=%s\n'  "$(_existing BRIEF_EMAIL_FROM || true)"
+  printf '  BRIEF_ENABLED=%s\n'     "$(_existing BRIEF_ENABLED || echo 1)"
   printf '  BRIEF_TIME=%s\n'        "$(_existing BRIEF_TIME || echo 07:00)"
-  printf '  BRIEF_DAYS=%s\n'        "$(_existing BRIEF_DAYS || echo weekdays)"
+  printf '  BRIEF_DAYS=%s\n'        "$(_existing BRIEF_DAYS || echo Mon-Fri)"
+  printf '  BRIEF_SCOPE=all\n'
+  printf '  BRIEF_SECTIONS=\n'
   printf '  DATA_DIR=/data\n'
   printf '  NODE_ENV=production\n'
   printf '%s\n' "$RESET"

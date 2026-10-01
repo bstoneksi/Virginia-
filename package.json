@@ -8,11 +8,14 @@
     "node": ">=24"
   },
   "scripts": {
+    "predev": "npm run config:apply",
     "dev": "concurrently -n server,client -c blue,green \"tsx watch server/index.ts\" \"vite --config client/vite.config.ts\"",
     "dev:server": "tsx watch server/index.ts",
     "dev:client": "vite --config client/vite.config.ts",
+    "prebuild": "npm run config:apply",
     "build": "vite build --config client/vite.config.ts",
     "start": "tsx server/index.ts",
+    "config:apply": "node scripts/apply-config.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.server.json && tsc --noEmit -p client/tsconfig.json",
     "test": "node --import tsx --test \"server/**/*.test.ts\" \"shared/**/*.test.ts\"",
     "check": "npm run typecheck && npm run test && npm run build"

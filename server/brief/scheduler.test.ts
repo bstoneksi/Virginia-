@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { exampleSeed } from "../lib/testing";
 import { describe, it } from "node:test";
 import { openDatabase } from "../db/index";
 import { createRepo } from "../db/repo";
@@ -111,7 +112,7 @@ describe("startBriefScheduler", () => {
   const T = (iso: string): Date => new Date(iso);
 
   it("generates once per scheduled day through tick(), records the run date, and survives an email failure", async () => {
-    const db = openDatabase(":memory:");
+    const db = openDatabase(":memory:", { seed: exampleSeed });
     const repo = createRepo(db);
     let now = T("2026-10-01T10:00:00Z"); // Thu 06:00 EDT
     const lines: string[] = [];
@@ -170,7 +171,7 @@ describe("startBriefScheduler", () => {
   });
 
   it("logs a failed run, backs off instead of retrying every minute, and never lets the interval throw", async () => {
-    const db = openDatabase(":memory:");
+    const db = openDatabase(":memory:", { seed: exampleSeed });
     const repo = createRepo(db);
     const broken = Object.assign(Object.create(repo) as Repo, {
       listItems: (): never => {
@@ -210,7 +211,7 @@ describe("startBriefScheduler", () => {
   });
 
   it("ticks once right after start by default so a late boot catches up without waiting a minute", async () => {
-    const db = openDatabase(":memory:");
+    const db = openDatabase(":memory:", { seed: exampleSeed });
     const repo = createRepo(db);
     const scheduler = startBriefScheduler({
       repo,

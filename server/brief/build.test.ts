@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { exampleSeed } from "../lib/testing";
 import { describe, it } from "node:test";
 import { emptyDraft } from "../../shared/types";
 import type { Item, ItemDraft } from "../../shared/types";
@@ -33,7 +34,7 @@ interface Fixture {
 }
 
 function fixture(): Fixture {
-  const db = openDatabase(":memory:");
+  const db = openDatabase(":memory:", { seed: exampleSeed });
   const repo = createRepo(db);
   return {
     db,

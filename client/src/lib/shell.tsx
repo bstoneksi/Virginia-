@@ -4,6 +4,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useLocation } from "react-router";
 import { api } from "@/api";
+import { useAssistant } from "@/lib/bootstrap";
 
 // --- page title -------------------------------------------------------------
 
@@ -28,11 +29,12 @@ export function useTitleContext(): TitleApi {
 /** Pages call this to set the top-bar title (and document.title). */
 export function usePageTitle(title: string | undefined | null): void {
   const { setTitle } = useTitleContext();
+  const { name } = useAssistant();
   useEffect(() => {
     setTitle(title ?? null);
-    document.title = title ? `${title} · Virginia` : "Virginia";
+    document.title = title ? `${title} · ${name}` : name;
     return () => setTitle(null);
-  }, [title, setTitle]);
+  }, [title, setTitle, name]);
 }
 
 // --- pending captures badge -------------------------------------------------

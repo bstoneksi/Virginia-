@@ -4,6 +4,7 @@ client/dist/
 data/*
 !data/.gitkeep
 .env
+assistant.config.local.json
 *.log
 .DS_Store
 Thumbs.db

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { SEED_DIVISIONS, SEED_PEOPLE } from "../../shared/types";
 import type { ExtractContext } from "../contracts";
+import { exampleDivisions, examplePeople } from "../lib/testing";
 import {
   NB_TARGET_WARNING,
   RULE_CONFIDENCE,
@@ -17,8 +17,8 @@ import {
 } from "./grammar";
 
 const ctx: ExtractContext = {
-  people: SEED_PEOPLE.map((p, i) => ({ ...p, id: i + 1 })),
-  divisions: SEED_DIVISIONS,
+  people: examplePeople,
+  divisions: exampleDivisions,
   initiatives: [
     { id: 1, name: "BAU", status: "Active", createdAt: "2026-01-01T00:00:00.000Z" },
     { id: 2, name: "Showroom Refresh", status: "Active", createdAt: "2026-01-01T00:00:00.000Z" },

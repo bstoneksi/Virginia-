@@ -14,6 +14,7 @@ import {
   type Priority,
   type TodayView,
 } from "./types";
+import { DEFAULT_TIMEZONE, dateISOInTZ } from "./timezone";
 
 // ---------------------------------------------------------------------------
 // Ordering
@@ -102,18 +103,14 @@ export function groupForAgenda(items: readonly Item[], options: GroupOptions = {
 /** The parts of an Agenda the renderer needs (so it can be called before `markdown` exists). */
 export type AgendaLike = Pick<Agenda, "subject" | "groups" | "generatedAt">;
 
-/** YYYY-MM-DD in America/Detroit for an ISO timestamp; falls back to the first 10 characters. */
-export function formatDateDetroit(iso: string): string {
+/**
+ * YYYY-MM-DD of an ISO timestamp in `tz` — the owner's timezone, America/Detroit by default (hence the
+ * name); falls back to the first 10 characters when the timestamp does not parse.
+ */
+export function formatDateDetroit(iso: string, tz: string = DEFAULT_TIMEZONE): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso.slice(0, 10);
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "America/Detroit",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(d);
-  const get = (type: string): string => parts.find((p) => p.type === type)?.value ?? "";
-  return `${get("year")}-${get("month")}-${get("day")}`;
+  return dateISOInTZ(d, tz);
 }
 
 /** `[priority] title — owner initials, due YYYY-MM-DD` (owner / due omitted when absent). */
@@ -139,9 +136,10 @@ function pushItemLines(lines: string[], item: Item, indent: string): void {
  * Ready-to-paste Markdown: heading with the subject label and date, one `##` section per category
  * (CATEGORY_LABELS), one bullet per active item with its note indented beneath, parked items in a
  * `Parked:` sub-list and (when present) done items in a `Done:` sub-list. No trailing whitespace.
+ * The heading date is `generatedAt` in `tz` (the owner's timezone; America/Detroit by default).
  */
-export function agendaToMarkdown(agenda: AgendaLike): string {
-  const lines: string[] = [`# Agenda — ${agenda.subject.label} (${formatDateDetroit(agenda.generatedAt)})`];
+export function agendaToMarkdown(agenda: AgendaLike, tz: string = DEFAULT_TIMEZONE): string {
+  const lines: string[] = [`# Agenda — ${agenda.subject.label} (${formatDateDetroit(agenda.generatedAt, tz)})`];
   if (agenda.groups.length === 0) {
     lines.push("", "_No open items._");
   }

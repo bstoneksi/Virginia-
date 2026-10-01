@@ -1,14 +1,14 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { SEED_DIVISIONS, SEED_PEOPLE } from "../../shared/types";
 import type { ExtractContext, ExtractInput, ProposalDraft } from "../contracts";
+import { exampleDivisions, examplePeople } from "../lib/testing";
 import { ADDED_BY_RULE_WARNING, NB_TARGET_WARNING, createRosterResolver, parseTaggedLines } from "./grammar";
 import { INFERRED_MAX_CONFIDENCE, STABLE_SYSTEM_PROMPT, buildUserText, mergeRuleProposals, normalizeModelProposal, postProcessModelOutput, proposalSimilarity } from "./prompt";
 import type { ExtractedProposal, ExtractionOutput } from "./schema";
 
 const ctx: ExtractContext = {
-  people: SEED_PEOPLE.map((p, i) => ({ ...p, id: i + 1 })),
-  divisions: SEED_DIVISIONS,
+  people: examplePeople,
+  divisions: exampleDivisions,
   initiatives: [
     { id: 1, name: "BAU", status: "Active", createdAt: "2026-01-01T00:00:00.000Z" },
     { id: 2, name: "Showroom Refresh", status: "Active", createdAt: "2026-01-01T00:00:00.000Z" },

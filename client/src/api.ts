@@ -17,6 +17,7 @@ import type {
   DailyBriefRunResult,
   DailyBriefStatus,
   Division,
+  HealthResponse,
   ImportCommitResult,
   ImportPreview,
   ImportRow,
@@ -177,7 +178,7 @@ export const api = {
     me: () => request<{ authenticated: boolean }>("GET", "/api/auth/me"),
   },
   bootstrap: (signal?: AbortSignal) => request<Bootstrap>("GET", "/api/bootstrap", { signal }),
-  health: () => request<{ ok: boolean; version: string }>("GET", "/api/health"),
+  health: () => request<HealthResponse>("GET", "/api/health"),
 
   items: {
     list: (filters: ItemFilters = {}, signal?: AbortSignal) =>

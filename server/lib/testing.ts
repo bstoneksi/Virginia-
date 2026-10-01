@@ -6,16 +6,31 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import type { Hono } from "hono";
+import type { Division, Person } from "../../shared/types";
 import { createApp } from "../app";
 import type { AppDeps } from "../app";
+import { readAssistantConfigFile, toSeed } from "../assistantConfig";
+import type { AssistantConfig } from "../assistantConfig";
 import { SESSION_COOKIE, makeSessionCookieValue } from "../auth";
 import type { Config } from "../config";
 import { openDatabase } from "../db/index";
 import type { Db } from "../db/index";
 import { createRepo } from "../db/repo";
 import type { Repo } from "../db/repo";
+import type { SeedData } from "../db/seed";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
+const repoRoot = path.resolve(here, "..", "..");
+
+/**
+ * The first instance's assistant.config.json (Brandon's), read directly — never the local override or
+ * ASSISTANT_CONFIG — so every test sees the same owner, roster and divisions.
+ */
+export const exampleAssistantConfig: AssistantConfig = readAssistantConfigFile(path.join(repoRoot, "assistant.config.json"));
+export const exampleSeed: SeedData = toSeed(exampleAssistantConfig);
+export const exampleDivisions: Division[] = exampleSeed.divisions;
+/** The seed people with the ids SQLite assigns (1-based, insertion order; the owner comes first). */
+export const examplePeople: Person[] = exampleSeed.people.map((p, i) => ({ ...p, id: i + 1 }));
 
 export const TEST_PASSWORD = "correct horse battery staple";
 export const TEST_SECRET = "test-session-secret-0123456789";
@@ -46,6 +61,7 @@ export function testConfig(overrides: Partial<Config> = {}): Config {
     resendApiKey: null,
     briefEmailTo: "bstone@teamksi.com",
     briefEmailFrom: "Virginia <onboarding@resend.dev>",
+    assistant: exampleAssistantConfig,
     ...overrides,
   };
 }
@@ -61,7 +77,7 @@ export interface TestApp {
 
 export function makeTestApp(configOverrides: Partial<Config> = {}, deps: Partial<Omit<AppDeps, "config" | "db">> = {}): TestApp {
   const config = testConfig(configOverrides);
-  const db = openDatabase(":memory:");
+  const db = openDatabase(":memory:", { seed: exampleSeed });
   const app = createApp({ config, db, ...deps });
   const repo = createRepo(db);
   const session = repo.createSession();

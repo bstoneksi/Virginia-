@@ -199,12 +199,14 @@ export function extractContext(repo: Repo): ExtractContext {
 const ruleParserOnly = createExtractor({ apiKey: null, model: "" });
 
 async function runExtraction(deps: RouteDeps, capture: Capture, files: CaptureFileInput[]): Promise<ExtractResult> {
+  const timezone = deps.config.assistant.owner.timezone;
   const input: ExtractInput = {
     text: capture.rawText,
     images: files.map((f) => ({ filename: f.filename, mime: f.mime, bytes: f.bytes })),
     context: capture.context,
     defaultDivisionCode: capture.defaultDivisionCode,
-    todayISO: todayISO(),
+    todayISO: todayISO(new Date(), timezone),
+    timezone,
   };
   const extract = deps.extractProposals ?? ruleParserOnly;
   return extract(input, extractContext(deps.repo));

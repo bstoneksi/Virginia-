@@ -6,6 +6,7 @@
  * text — goes into the user message built by `buildUserText`. `postProcessModelOutput` scrubs the
  * model's answer against the roster and merges in the deterministic rule parser's results.
  */
+import { DEFAULT_TIMEZONE } from "../../shared/timezone";
 import { emptyDraft, type ItemDraft } from "../../shared/types";
 import type { ExtractContext, ExtractInput, ProposalDraft } from "../contracts";
 import {
@@ -113,7 +114,7 @@ export function buildUserText(input: ExtractInput, ctx: ExtractContext, options:
     `## Roster (initials → full name → division)\n${listOrNone(rosterLines, "(empty roster — leave ownerInitials null)")}`,
     `## Division codes\n${listOrNone(divisionLines, "(no divisions — leave divisionCode null)")}`,
     `## Initiatives\n${listOrNone(initiativeLines, "(none yet — only set initiativeName when the text names one)")}`,
-    `## Today\n${input.todayISO}${weekday ? ` (${weekday})` : ""}, America/Detroit`,
+    `## Today\n${input.todayISO}${weekday ? ` (${weekday})` : ""}, ${input.timezone ?? DEFAULT_TIMEZONE}`,
     `## Context\n${input.context?.trim() ? input.context.trim() : "(none)"}`,
     `## Default division\n${
       defaultDivision

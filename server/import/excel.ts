@@ -9,7 +9,7 @@
 import ExcelJS from "exceljs";
 import type { CellValue, Workbook, Worksheet } from "exceljs";
 import type { ImportPreview, ImportRow } from "../../shared/types";
-import type { ExtractContext, ImportFile, ParseImportFileFn } from "../contracts";
+import type { ExtractContext, ImportFile, ParseImportFileFn, ParseImportOptions } from "../contracts";
 import { todayISO } from "../db/index";
 import { ValidationError } from "../lib/errors";
 import { parseCsv } from "./csv";
@@ -131,11 +131,11 @@ export function previewFromGrids(filename: string, grids: readonly SheetGrid[], 
 }
 
 /** ParseImportFileFn for server/app.ts: `.xlsx` / `.xlsm` via ExcelJS, `.csv` by hand; 422 for anything else. */
-export const parseImportFile: ParseImportFileFn = async (file: ImportFile, ctx: ExtractContext): Promise<ImportPreview> => {
+export const parseImportFile: ParseImportFileFn = async (file: ImportFile, ctx: ExtractContext, options: ParseImportOptions = {}): Promise<ImportPreview> => {
   const filename = file.filename.trim() || "import";
   const bytes = file.bytes;
   if (bytes.byteLength === 0) throw new ValidationError("The uploaded file is empty");
-  const today = todayISO();
+  const today = options.todayISO ?? todayISO();
   switch (sniffFileKind(bytes, filename)) {
     case "workbook":
       return previewFromGrids(filename, await gridsFromWorkbook(bytes), ctx, today);

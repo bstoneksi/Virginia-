@@ -6,6 +6,8 @@ import type { BriefScope, BriefSectionKey } from "./brief/build";
 import { DEFAULT_BRIEF_EMAIL_FROM, DEFAULT_BRIEF_EMAIL_TO } from "./brief/email";
 import { parseBriefDays, parseBriefTime } from "./brief/scheduler";
 import type { Weekday } from "./brief/scheduler";
+import { loadAssistantConfig } from "./assistantConfig";
+import type { AssistantConfig } from "./assistantConfig";
 
 export interface Config {
   port: number;
@@ -40,6 +42,8 @@ export interface Config {
   briefEmailTo: string;
   /** Sender (BRIEF_EMAIL_FROM); Resend's onboarding sender only delivers to the account owner's address. */
   briefEmailFrom: string;
+  /** assistant.config.json — name, owner, roster, divisions, timezone, branding (server/assistantConfig.ts). */
+  assistant: AssistantConfig;
 }
 
 const EMAIL_RE = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/;
@@ -121,5 +125,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     resendApiKey: nonEmpty(env.RESEND_API_KEY),
     briefEmailTo,
     briefEmailFrom: nonEmpty(env.BRIEF_EMAIL_FROM) ?? DEFAULT_BRIEF_EMAIL_FROM,
+    assistant: loadAssistantConfig(rootDir, env),
   };
 }

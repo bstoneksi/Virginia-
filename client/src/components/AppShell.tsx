@@ -1,5 +1,5 @@
 import { Link, NavLink, Outlet, useLocation } from "react-router";
-import { useBootstrap } from "@/lib/bootstrap";
+import { useAssistant, useBootstrap } from "@/lib/bootstrap";
 import { usePendingCaptures, useTitleContext } from "@/lib/shell";
 import { Icon, type IconName } from "./Icon";
 
@@ -36,10 +36,10 @@ const TITLE_BY_PREFIX: [string, string][] = [
   ["/more", "More"],
 ];
 
-function defaultTitle(pathname: string): string {
+function defaultTitle(pathname: string, fallback: string): string {
   if (pathname === "/") return "Today";
   const hit = TITLE_BY_PREFIX.find(([prefix]) => pathname === prefix || pathname.startsWith(`${prefix}/`));
-  return hit ? hit[1] : "Virginia";
+  return hit ? hit[1] : fallback;
 }
 
 function isPrimaryPath(pathname: string): boolean {
@@ -59,8 +59,9 @@ export function AppShell() {
   const { title } = useTitleContext();
   const { count } = usePendingCaptures();
   const { version } = useBootstrap();
+  const { name } = useAssistant();
   const location = useLocation();
-  const shownTitle = title ?? defaultTitle(location.pathname);
+  const shownTitle = title ?? defaultTitle(location.pathname, name);
 
   return (
     <div className="min-h-dvh md:flex">
@@ -72,7 +73,7 @@ export function AppShell() {
               <path d="M30 34 L64 100 L98 34" fill="none" stroke="currentColor" strokeWidth="16" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </span>
-          <span className="text-base font-semibold text-slate-900">Virginia</span>
+          <span className="text-base font-semibold text-slate-900">{name}</span>
         </Link>
         <nav className="flex flex-1 flex-col gap-0.5 p-2">
           {NAV.map((n) => (

@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 import { emptyDraft } from "../../shared/types";
 import { openDatabase, todayISO } from "../db/index";
 import { ValidationError, createRepo } from "../db/repo";
-import { testConfig } from "../lib/testing";
+import { testConfig, exampleSeed } from "../lib/testing";
 import type { EmailMessage, EmailSender } from "./email";
 import { createNoopSender } from "./email";
 import { BRIEF_SETTING_KEYS, getDailyBriefStatus, runDailyBrief } from "./run";
@@ -23,7 +23,7 @@ function capturingSender(): EmailSender & { sent: EmailMessage[] } {
 
 describe("repo additions: settings and latestBrief", () => {
   it("get / set / delete settings", () => {
-    const repo = createRepo(openDatabase(":memory:"));
+    const repo = createRepo(openDatabase(":memory:", { seed: exampleSeed }));
     assert.equal(repo.getSetting("x"), null);
     repo.setSetting("x", "1");
     assert.equal(repo.getSetting("x"), "1");
@@ -38,7 +38,7 @@ describe("repo additions: settings and latestBrief", () => {
   });
 
   it("latestBrief picks the newest of a kind, optionally since an instant", () => {
-    const repo = createRepo(openDatabase(":memory:"));
+    const repo = createRepo(openDatabase(":memory:", { seed: exampleSeed }));
     assert.equal(repo.latestBrief("email_digest"), null);
     const a = repo.createBrief({ kind: "email_digest", title: "A", bodyMd: "" });
     const b = repo.createBrief({ kind: "daily", title: "B", bodyMd: "" });
@@ -55,7 +55,7 @@ describe("repo additions: settings and latestBrief", () => {
 
 describe("runDailyBrief", () => {
   it("stores a daily brief, records the run in settings and emails it with the title as subject", async () => {
-    const repo = createRepo(openDatabase(":memory:"));
+    const repo = createRepo(openDatabase(":memory:", { seed: exampleSeed }));
     repo.createItem(emptyDraft({ title: "Late thing", dueDate: "2020-01-01" }));
     const sender = capturingSender();
     const lines: string[] = [];
@@ -88,7 +88,7 @@ describe("runDailyBrief", () => {
   });
 
   it("with the noop sender the brief is stored, emailed is false and there is no error", async () => {
-    const repo = createRepo(openDatabase(":memory:"));
+    const repo = createRepo(openDatabase(":memory:", { seed: exampleSeed }));
     const lines: string[] = [];
     const result = await runDailyBrief({ repo, sender: createNoopSender(() => undefined), to: "bstone@teamksi.com", log: (l) => lines.push(l) });
     assert.equal(result.emailed, false);
@@ -100,7 +100,7 @@ describe("runDailyBrief", () => {
   });
 
   it("catches an email failure, records it, keeps the brief, and clears it after the next success", async () => {
-    const repo = createRepo(openDatabase(":memory:"));
+    const repo = createRepo(openDatabase(":memory:", { seed: exampleSeed }));
     const failing: EmailSender = {
       configured: true,
       description: "failing",
@@ -121,7 +121,7 @@ describe("runDailyBrief", () => {
   });
 
   it("getDailyBriefStatus reflects the config and the recorded settings", async () => {
-    const repo = createRepo(openDatabase(":memory:"));
+    const repo = createRepo(openDatabase(":memory:", { seed: exampleSeed }));
     const config = testConfig({ briefEnabled: true, briefTime: "06:30", briefDays: ["Mon", "Wed"], briefSections: ["overdue"], briefScope: "mine", briefEmailTo: "b@teamksi.com" });
     const noop = createNoopSender(() => undefined);
     assert.deepEqual(getDailyBriefStatus(repo, config, noop), {

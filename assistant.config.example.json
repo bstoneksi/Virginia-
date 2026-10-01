@@ -8,7 +8,8 @@
     "initials": "ME",
     "email": "you@teamksi.com",
     "role": null,
-    "timezone": "America/Detroit"
+    "timezone": "America/Detroit",
+    "divisionCode": null
   },
   "organization": {
     "name": "KSI Family of Brands",

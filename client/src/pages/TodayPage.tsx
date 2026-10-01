@@ -5,8 +5,7 @@ import { Icon } from "@/components/Icon";
 import { ItemList } from "@/components/ItemCard";
 import { QuickAdd } from "@/components/QuickAdd";
 import { EmptyState, ErrorState, LoadingState, SectionHeader } from "@/components/States";
-import { useBootstrap } from "@/lib/bootstrap";
-import { TZ } from "@/lib/dates";
+import { useAssistant, useBootstrap } from "@/lib/bootstrap";
 import { useItemDrawer } from "@/lib/drawer";
 import { useItemChanges } from "@/lib/itemEvents";
 import { usePageTitle } from "@/lib/shell";
@@ -27,12 +26,13 @@ function Section({ title, items, tone = "default", hint, onOpen }: { title: stri
 export function TodayPage() {
   usePageTitle("Today");
   const { me } = useBootstrap();
+  const { timezone } = useAssistant();
   const { openItem } = useItemDrawer();
   const today = useQuery((signal) => api.today(signal), []);
   useItemChanges(() => void today.reload());
 
   const open = (item: Item) => openItem(item.id);
-  const dateLine = new Intl.DateTimeFormat("en-US", { timeZone: TZ, weekday: "long", month: "long", day: "numeric" }).format(new Date());
+  const dateLine = new Intl.DateTimeFormat("en-US", { timeZone: timezone, weekday: "long", month: "long", day: "numeric" }).format(new Date());
   const data = today.data;
   const total = data ? data.overdue.length + data.dueSoon.length + data.highPriority.length + data.unowned.length : 0;
 

@@ -1,5 +1,5 @@
 /**
- * server/mcp/server.ts — Virginia's MCP connector (docs/SPEC.md §6).
+ * server/mcp/server.ts — the MCP connector (docs/SPEC.md §6).
  *
  * Streamable HTTP in stateless mode: every request gets a fresh McpServer + transport (no session ids,
  * JSON responses instead of SSE, so a curl round trip is readable and nothing lingers after the
@@ -7,7 +7,7 @@
  * and `requireAuth` accepts it — so the handler only speaks JSON-RPC.
  *
  * Tools run straight against the Repo (`add_items` is the one deliberate exception to "nothing lands
- * without review": Claude-in-chat is Brandon acting on purpose). Results are pretty-printed JSON text
+ * without review": Claude-in-chat is the owner acting on purpose). Results are pretty-printed JSON text
  * blocks; `get_agenda` adds the Markdown rendering as a second block.
  *
  * Wire into the app as `createApp({ ..., mcpHandler: createMcpHandler({ db, config }) })`.
@@ -20,6 +20,7 @@ import { BRIEF_KINDS, CATEGORIES, PRIORITIES, STATUSES } from "../../shared/type
 import type { Agenda } from "../../shared/types";
 import { createEmailSender } from "../brief/email";
 import { runDailyBrief } from "../brief/run";
+import type { AssistantConfig } from "../assistantConfig";
 import type { Config } from "../config";
 import type { McpRequestHandler } from "../contracts";
 import type { Db } from "../db/index";
@@ -35,7 +36,14 @@ export interface McpHandlerDeps {
   config: Config;
 }
 
-export const MCP_SERVER_NAME = "virginia";
+/** The server name Claude shows for the connector: the assistant's name as a slug ("Virginia" → "virginia"). */
+export function mcpServerName(assistant: AssistantConfig): string {
+  const slug = assistant.assistant.name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return slug.length > 0 ? slug : "assistant";
+}
 
 export const MCP_TOOL_NAMES = [
   "list_items",
@@ -50,14 +58,21 @@ export const MCP_TOOL_NAMES = [
   "run_daily_brief",
 ] as const;
 
-const INSTRUCTIONS = [
-  "Virginia is Brandon Stone's executive-assistant tracker for the KSI Family of Brands.",
-  "Every item has a category tag — A action, Q question, I idea, D decision, W watch, NB new business (must target a person or a division) —",
-  "an owner (roster initials; a blank owner on an action means Brandon himself), an optional division code (seeded: K&B, K&B-S, K&B-I, K&B-O, APP, HG, PF, RF, TS, FOB, ACC, S&M; PTD = personal),",
-  "a priority (Low/Medium/High), a status (Open, In Progress, Parked = someday, Done) and an optional due date (YYYY-MM-DD, America/Detroit).",
-  "Call list_reference first for the live roster, division codes and today's date. add_items writes directly with no review step, so only use it when Brandon has clearly asked.",
-  "Items are never deleted — move them to Done instead. Agendas per person or division come from get_agenda; Brandon's own priority list from get_today.",
-].join(" ");
+/** Server instructions for Claude, built from assistant.config.json: who the owner is, which codes were seeded, the timezone. */
+export function instructionsFor(assistant: AssistantConfig): string {
+  const owner = assistant.owner;
+  const who = `${owner.fullName} (${owner.initials}${owner.role ? `, ${owner.role}` : ""})`;
+  const codes = assistant.divisions.filter((d) => d.kind !== "personal").map((d) => d.code);
+  const personal = assistant.divisions.find((d) => d.kind === "personal")?.code ?? assistant.personalDivisionCode;
+  return [
+    `${assistant.assistant.name} is the private task tracker of ${who} at the ${assistant.organization.name}: ${owner.fullName} is the owner, "me".`,
+    "Every item has a category tag — A action, Q question, I idea, D decision, W watch, NB new business (must target a person or a division) —",
+    `an owner (roster initials; a blank owner on an action means the owner), an optional division code (seeded: ${codes.join(", ")}; ${personal} = personal),`,
+    `a priority (Low/Medium/High), a status (Open, In Progress, Parked = someday, Done) and an optional due date (YYYY-MM-DD, ${owner.timezone}).`,
+    "Call list_reference first for the live roster, division codes and today's date. add_items writes directly with no review step, so only use it when the owner has clearly asked.",
+    "Items are never deleted — move them to Done instead. Agendas per person or division come from get_agenda; the owner's own priority list from get_today.",
+  ].join(" ");
+}
 
 // ---------------------------------------------------------------------------
 // Result helpers
@@ -103,7 +118,7 @@ const draftShape = {
   title: z.string().trim().min(1).max(140).describe("Imperative headline, at most 140 characters, no trailing period"),
   note: z.string().max(20000).default("").describe("Full detail, speaker attribution, links"),
   divisionCode: z.string().trim().max(32).nullable().default(null).describe("Division code such as HG or K&B-I (see list_reference); null when none"),
-  ownerInitials: z.string().trim().max(16).nullable().default(null).describe("Roster initials of the owner (A/Q/I/W) or target (NB); null on an action means Brandon"),
+  ownerInitials: z.string().trim().max(16).nullable().default(null).describe("Roster initials of the owner (A/Q/I/W) or target (NB); null on an action means the tracker's owner (\"me\")"),
   initiativeName: z.string().trim().max(120).nullable().default(null).describe("Optional roll-up initiative; created if it does not exist"),
   priority: z.enum(PRIORITIES).default("Medium"),
   status: z.enum(STATUSES).default("Open").describe("Open · In Progress · Parked (someday) · Done. Decisions (D) are usually Done."),
@@ -142,7 +157,8 @@ const listItemsShape = {
 
 /** A fully configured McpServer over `repo`. One instance per request in stateless mode. */
 export function buildMcpServer(repo: Repo, config: Config): McpServer {
-  const server = new McpServer({ name: MCP_SERVER_NAME, version: config.version }, { instructions: INSTRUCTIONS });
+  const server = new McpServer({ name: mcpServerName(config.assistant), version: config.version }, { instructions: instructionsFor(config.assistant) });
+  const tz = config.assistant.owner.timezone;
   const readOnly = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false } as const;
   const writes = { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false } as const;
 
@@ -192,7 +208,7 @@ export function buildMcpServer(repo: Repo, config: Config): McpServer {
     {
       title: "Add items",
       description:
-        "Create items directly — there is no review step, so only call this when Brandon has deliberately asked for items to be added. Each item needs a title; category defaults to A (action). NB items need ownerInitials (the target) or a divisionCode. Unknown initials or division codes are rejected — check list_reference. All-or-nothing: returns the created items.",
+        "Create items directly — there is no review step, so only call this when the owner has deliberately asked for items to be added. Each item needs a title; category defaults to A (action). NB items need ownerInitials (the target) or a divisionCode. Unknown initials or division codes are rejected — check list_reference. All-or-nothing: returns the created items.",
       inputSchema: { items: z.array(z.object(draftShape)).min(1).max(100).describe("Items to create") },
       annotations: writes,
     },
@@ -216,7 +232,7 @@ export function buildMcpServer(repo: Repo, config: Config): McpServer {
     {
       title: "Get agenda",
       description:
-        "Agenda for a person (initials, e.g. VM) or a division (code, e.g. HG); with neither, Brandon's own agenda. Groups in order NB → A → Q → W → I → D, active items first (priority, due date), parked at the bottom, Done only with includeDone. Returns the JSON agenda and a ready-to-paste Markdown rendering.",
+        "Agenda for a person (initials, e.g. VM) or a division (code, e.g. HG); with neither, the owner's own agenda. Groups in order NB → A → Q → W → I → D, active items first (priority, due date), parked at the bottom, Done only with includeDone. Returns the JSON agenda and a ready-to-paste Markdown rendering.",
       inputSchema: {
         person: z.string().trim().optional().describe("Roster initials"),
         division: z.string().trim().optional().describe("Division code"),
@@ -229,13 +245,13 @@ export function buildMcpServer(repo: Repo, config: Config): McpServer {
         if (person && division) throw new ValidationError("Pass either person or division, not both");
         let agenda: Agenda;
         if (division) {
-          agenda = divisionAgenda(repo, division, includeDone);
+          agenda = divisionAgenda(repo, division, includeDone, tz);
         } else if (person) {
-          agenda = personAgenda(repo, person, includeDone);
+          agenda = personAgenda(repo, person, includeDone, tz);
         } else {
           const me = repo.getMe();
           if (!me) throw new ValidationError("Nobody is marked as 'me' in Settings — pass person or division");
-          agenda = personAgenda(repo, me.initials, includeDone);
+          agenda = personAgenda(repo, me.initials, includeDone, tz);
         }
         return jsonResult(agenda, agenda.markdown);
       }),
@@ -246,11 +262,11 @@ export function buildMcpServer(repo: Repo, config: Config): McpServer {
     {
       title: "Get today",
       description:
-        "Brandon's Today view: overdue, due in the next 7 days, high-priority and unowned items (each item appears in one bucket only) plus the number of captures waiting for review. Takes no arguments.",
+        "The owner's Today view: overdue, due in the next 7 days, high-priority and unowned items (each item appears in one bucket only) plus the number of captures waiting for review. Takes no arguments.",
       // No inputSchema: zero-argument tools must accept a call that omits `arguments` entirely.
       annotations: readOnly,
     },
-    async () => attempt(() => jsonResult({ today: todayISO(), ...buildToday(repo) })),
+    async () => attempt(() => jsonResult({ today: todayISO(new Date(), tz), ...buildToday(repo, new Date(), tz) })),
   );
 
   server.registerTool(
@@ -269,13 +285,14 @@ export function buildMcpServer(repo: Repo, config: Config): McpServer {
     {
       title: "List reference data",
       description:
-        "The roster (people with initials), divisions (codes, names, colors), initiatives, who 'me' is and today's date in America/Detroit. Call this before adding or updating items so initials and division codes are valid. Takes no arguments.",
+        "The roster (people with initials), divisions (codes, names, colors), initiatives, who 'me' is and today's date in the owner's timezone. Call this before adding or updating items so initials and division codes are valid. Takes no arguments.",
       annotations: readOnly,
     },
     async () =>
       attempt(() =>
         jsonResult({
-          today: todayISO(),
+          today: todayISO(new Date(), tz),
+          timezone: tz,
           me: repo.getMe(),
           people: repo.listPeople(),
           divisions: repo.listDivisions(),
@@ -289,7 +306,7 @@ export function buildMcpServer(repo: Repo, config: Config): McpServer {
     {
       title: "Add brief",
       description:
-        "Store a Markdown brief so it appears on Virginia's Briefs page — this is how the email-digest routine drops its summaries into the app. Returns the stored brief.",
+        "Store a Markdown brief so it appears on the app's Briefs page — this is how the email-digest routine drops its summaries into the app. Returns the stored brief.",
       inputSchema: {
         kind: z.enum(BRIEF_KINDS).describe("email_digest · daily · other"),
         title: z.string().trim().min(1).max(200),
@@ -333,7 +350,7 @@ export function buildMcpServer(repo: Repo, config: Config): McpServer {
 function methodNotAllowed(): Response {
   const body = {
     jsonrpc: "2.0",
-    error: { code: -32000, message: "Method not allowed. Virginia's MCP endpoint is stateless: send JSON-RPC requests with POST." },
+    error: { code: -32000, message: "Method not allowed. This MCP endpoint is stateless: send JSON-RPC requests with POST." },
     id: null,
   };
   return new Response(JSON.stringify(body), { status: 405, headers: { "content-type": "application/json", allow: "POST" } });

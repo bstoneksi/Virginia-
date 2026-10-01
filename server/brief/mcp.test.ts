@@ -4,7 +4,7 @@ import type { Hono } from "hono";
 import { createApp } from "../app";
 import { openDatabase, todayISO } from "../db/index";
 import { createRepo } from "../db/repo";
-import { testConfig } from "../lib/testing";
+import { testConfig, exampleSeed } from "../lib/testing";
 import { MCP_TOOL_NAMES, createMcpHandler } from "../mcp/server";
 import { BRIEF_SETTING_KEYS } from "./run";
 import type { DailyBriefRunResult } from "./run";
@@ -38,7 +38,7 @@ async function rpcResult<T>(app: Hono, method: string, params?: unknown): Promis
 describe("MCP tool run_daily_brief", () => {
   it("is advertised as a write tool and runs the daily brief exactly like POST /api/briefs/daily/run", async () => {
     const config = testConfig({ mcpToken: "t" });
-    const db = openDatabase(":memory:");
+    const db = openDatabase(":memory:", { seed: exampleSeed });
     const repo = createRepo(db);
     const app = createApp({ config, db, mcpHandler: createMcpHandler({ db, config }) });
 

@@ -17,7 +17,8 @@ import {
   reassignment,
   type GroupContext,
 } from "./boardGroups";
-import { SEED_DIVISIONS, SEED_PEOPLE, type Item, type Person } from "./types";
+import type { Item, Person } from "./types";
+import { exampleDivisions, examplePeople } from "../server/lib/testing";
 
 let seq = 0;
 function mk(overrides: Partial<Item> = {}): Item {
@@ -44,8 +45,8 @@ function mk(overrides: Partial<Item> = {}): Item {
   };
 }
 
-const PEOPLE: Person[] = SEED_PEOPLE.map((p, i) => ({ ...p, id: i + 1 }));
-const CTX: GroupContext = { divisions: SEED_DIVISIONS, people: PEOPLE, meInitials: "BS" };
+const PEOPLE: Person[] = examplePeople;
+const CTX: GroupContext = { divisions: exampleDivisions, people: PEOPLE, meInitials: "BS" };
 
 describe("isGroupMode", () => {
   it("accepts the three modes and nothing else", () => {
@@ -184,7 +185,7 @@ describe("groupItems — person", () => {
 
   it("labels the null-owner lane plainly when nobody is marked me", () => {
     const nobody = PEOPLE.map((p) => ({ ...p, isMe: false }));
-    const lanes = groupItems([mk()], "person", { divisions: SEED_DIVISIONS, people: nobody, meInitials: null });
+    const lanes = groupItems([mk()], "person", { divisions: exampleDivisions, people: nobody, meInitials: null });
     assert.deepEqual(lanes.map((l) => l.label), ["Unassigned"]);
     assert.equal(lanes[0]?.kind, "unassigned");
     assert.equal(lanes[0]?.chip, undefined);

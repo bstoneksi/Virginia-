@@ -7,6 +7,7 @@ import { Button, Field, Select, TextArea, TextInput } from "@/components/Field";
 import { Icon } from "@/components/Icon";
 import { Sheet } from "@/components/Sheet";
 import { EmptyState, ErrorState, LoadingState } from "@/components/States";
+import { useAssistant } from "@/lib/bootstrap";
 import { useConfirm } from "@/lib/confirm";
 import { formatDateTime } from "@/lib/dates";
 import { Markdown } from "@/lib/markdown";
@@ -109,7 +110,7 @@ export function BriefsPage() {
       {briefs.data && sorted.length === 0 && (
         <EmptyState
           title="No briefs yet"
-          hint="The daily brief lands here every weekday at 7 am (Settings → Daily brief can send one now); once the Virginia connector is set up, the email digest appears every couple of hours."
+          hint={`The daily brief lands here every weekday at 7 am (Settings → Daily brief can send one now); once the ${name} connector is set up, the email digest appears every couple of hours.`}
         />
       )}
       {sorted.map((b) => (

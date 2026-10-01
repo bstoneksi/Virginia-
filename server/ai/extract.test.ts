@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import Anthropic from "@anthropic-ai/sdk";
-import { SEED_DIVISIONS, SEED_PEOPLE, type Capture } from "../../shared/types";
+import type { Capture } from "../../shared/types";
 import type { ExtractContext, ExtractInput } from "../contracts";
-import { call, json, makeTestApp } from "../lib/testing";
+import { call, exampleDivisions, examplePeople, json, makeTestApp } from "../lib/testing";
 import {
   AI_NOT_CONFIGURED_NOTE,
   MAX_TOKENS,
@@ -22,8 +22,8 @@ import type { ExtractedProposal, ExtractionOutput } from "./schema";
 const MODEL = "claude-opus-5-5";
 const TODAY = "2026-09-30";
 const ctx: ExtractContext = {
-  people: SEED_PEOPLE.map((p, i) => ({ ...p, id: i + 1 })),
-  divisions: SEED_DIVISIONS,
+  people: examplePeople,
+  divisions: exampleDivisions,
   initiatives: [{ id: 1, name: "BAU", status: "Active", createdAt: "2026-01-01T00:00:00.000Z" }],
 };
 

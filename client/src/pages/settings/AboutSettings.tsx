@@ -2,11 +2,12 @@ import { useNavigate } from "react-router";
 import { api, errorMessage } from "@/api";
 import { Button } from "@/components/Field";
 import { Icon } from "@/components/Icon";
-import { useBootstrap } from "@/lib/bootstrap";
+import { useAssistant, useBootstrap } from "@/lib/bootstrap";
 import { useToast } from "@/lib/toast";
 
 export function AboutSettings() {
   const { aiConfigured, anthropicModel, version, me } = useBootstrap();
+  const { name } = useAssistant();
   const toast = useToast();
   const navigate = useNavigate();
 
@@ -44,7 +45,7 @@ export function AboutSettings() {
         </Button>
       </div>
 
-      <p className="text-xs text-slate-400">Virginia v{version} · Single-user · Nothing the AI proposes lands without your review.</p>
+      <p className="text-xs text-slate-400">{name} v{version} · Single-user · Nothing the AI proposes lands without your review.</p>
     </section>
   );
 }

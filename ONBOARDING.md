@@ -9,7 +9,7 @@ Read this file top to bottom before changing anything. Then follow the steps in 
 - A phone-installable web app plus API: capture anything (pasted meeting transcripts, photos of handwritten notes, screenshots, an Excel brain dump), Claude turns it into tagged action items, you approve them on a review screen, and they live on a kanban board with a Today list, an agenda per person you work with, a board per brand, a personal list, search and a briefs page.
 - A note grammar the extractor understands: `A:` action, `Q:` question, `I:` idea, `D:` decision, `W:` watch, `NB:` new business; initials after the tag = owner/target; a brand code anywhere on the line. Example: `A:VM Send updated glass quote — HG due 10/15`.
 - A connector so your own Claude.ai project can read and write the same tracker (Model Context Protocol over HTTPS).
-- Single-user login, SQLite storage on a Railway volume, Dockerfile and Railway config, 196 automated tests, a setup wizard for the accounts only you can create.
+- Single-user login, SQLite storage on a Railway volume, Dockerfile and Railway config, 297 automated tests, a setup wizard for the accounts only you can create.
 - Docs: `README.md` (overview and grammar), `docs/SPEC.md` (how it is built, the contract every change must respect), `docs/DEPLOY.md` (run and deploy), `docs/SETUP-WIZARD.sh` (accounts), `docs/CLAUDE-PROJECT-TEMPLATE.md` (the system prompt for your Claude.ai project), and `docs/example-instance/` (how the first instance was scoped and decided, for reference only).
 
 ## Step 0 — Get the code into Claude Code

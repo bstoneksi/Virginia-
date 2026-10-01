@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Virginia — Round 2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root { --navy:#1B325E; --navy-dark:#142549; --ink:#4E4E4F; --ink-strong:#2B2B2C; --line:#DDE1E8; --panel:#F4F5F7; --ok:#1E6B3A; --ok-bg:#E6F4EA; --warn:#9A6B00; --warn-bg:#FFF8E1; --white:#FFFFFF; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; background:var(--white); color:var(--ink); font-family:"Open Sans", Helvetica, Arial, sans-serif; font-size:16px; line-height:1.5; }
+  header { border-bottom:3px solid var(--navy); background:var(--white); position:sticky; top:0; z-index:5; }
+  .bar { max-width:960px; margin:0 auto; padding:14px 20px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
+  .logo { display:flex; align-items:center; gap:14px; text-decoration:none; }
+  .logo img { height:44px; width:auto; display:block; }
+  .logo .fob { color:var(--ink); font-size:13px; letter-spacing:.02em; }
+  .progress { font-size:14px; } .progress b { color:var(--navy); }
+  main { max-width:960px; margin:0 auto; padding:28px 20px 120px; }
+  h1 { color:var(--navy); font-weight:400; font-size:30px; margin:0 0 6px; }
+  h2 { color:var(--navy); font-weight:600; font-size:20px; margin:36px 0 12px; }
+  h3.sub { color:var(--ink-strong); font-size:17px; font-weight:600; margin:22px 0 6px; }
+  .lead { margin:0 0 20px; max-width:70ch; }
+  .panel { background:var(--panel); border-left:4px solid var(--navy); padding:16px 18px; margin:0 0 14px; }
+  .panel p { margin:6px 0; max-width:75ch; }
+  .panel ul, .panel ol { margin:8px 0 0; padding-left:22px; } .panel li { margin:5px 0; }
+  .tag { display:inline-block; font-size:12px; font-weight:600; padding:1px 8px; margin-left:6px; vertical-align:middle; }
+  .tag.you { background:var(--warn-bg); color:var(--warn); } .tag.me { background:var(--ok-bg); color:var(--ok); } .tag.it { background:#E3F2FD; color:#1565C0; }
+  .q { border:1px solid var(--line); padding:18px 18px 14px; margin:0 0 14px; background:var(--white); }
+  .q.answered { border-color:var(--navy); }
+  .q .num { display:inline-block; background:var(--navy); color:var(--white); font-weight:600; font-size:13px; padding:2px 8px; margin-right:8px; }
+  .q h3 { display:inline; color:var(--ink-strong); font-size:17px; font-weight:600; margin:0; }
+  .q p { margin:10px 0 12px; }
+  .opts { display:flex; flex-direction:column; gap:8px; }
+  .opt { text-align:left; background:var(--white); border:1px solid var(--line); padding:10px 14px; font:inherit; color:var(--ink-strong); cursor:pointer; display:flex; gap:10px; align-items:flex-start; min-height:44px; }
+  .opt:hover { border-color:var(--navy); }
+  .opt .k { color:var(--navy); font-weight:700; min-width:1.4em; }
+  .opt.selected { background:var(--navy); color:var(--white); border-color:var(--navy); } .opt.selected .k { color:var(--white); }
+  .opt .rec { margin-left:auto; font-size:12px; font-weight:600; color:var(--ok); background:var(--ok-bg); padding:1px 8px; white-space:nowrap; align-self:center; }
+  .opt.selected .rec { color:var(--white); background:rgba(255,255,255,.18); }
+  .own { margin-top:10px; display:flex; gap:8px; align-items:center; flex-wrap:wrap; } .own label { font-size:14px; }
+  .own input { flex:1; min-width:240px; font:inherit; padding:9px 12px; border:1px solid var(--line); min-height:44px; } .own input:focus { outline:2px solid var(--navy); outline-offset:0; }
+  .actions { position:fixed; bottom:0; left:0; right:0; background:var(--white); border-top:1px solid var(--line); box-shadow:0 -4px 16px rgba(0,0,0,.06); } .actions .bar { padding:12px 20px; }
+  .btn { font:inherit; font-weight:600; min-height:44px; padding:10px 18px; cursor:pointer; border:1px solid var(--navy); background:var(--white); color:var(--navy); }
+  .btn.primary { background:var(--navy); color:var(--white); } .btn.primary:hover { background:var(--navy-dark); }
+  .status { font-size:14px; color:var(--ok); min-height:1.2em; }
+  textarea.out { width:100%; min-height:200px; font:14px/1.45 ui-monospace, Consolas, monospace; padding:12px; border:1px solid var(--line); margin-top:10px; color:var(--ink-strong); }
+  .muted { font-size:14px; }
+  @media (max-width:640px) { h1 { font-size:24px; } .bar { flex-wrap:wrap; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <a class="logo" href="https://ksikitchens.com" target="_blank" rel="noopener">
+      <img src="https://ksikitchens.com/wp-content/uploads/2022/10/ksi_logo-blue.svg" alt="KSI" onerror="this.style.display='none'" />
+      <span class="fob">KSI Family of Brands</span>
+    </a>
+    <div class="progress"><b id="count">0</b> of 5 answered</div>
+  </div>
+</header>
+
+<main>
+  <h1>Virginia — Round 2</h1>
+  <p class="lead">Thanks for the Round 1 answers. Thirteen of them match what is built. Two change the plan and are being built now: rows per brand or person on the board (Q6), and a 7 am brief in the app and by email (Q14). Below: answers to your two questions, what is still needed, and five short decisions.</p>
+
+  <h2>Your questions, answered</h2>
+
+  <div class="panel">
+    <h3 class="sub" style="margin-top:0">What a kanban board is (Q6)</h3>
+    <p>A kanban board is a board with one column per stage: Open, In Progress, Parked, Done. Every item is a card. You drag a card to the next column as the work moves along, and up or down to set its order. That is all "kanban" means.</p>
+    <p><strong>What you asked for</strong> is the same board split into rows, one row per brand or per person, so you can see each person's cards across all stages at once. That is being added as a <strong>Group by</strong> switch at the top of the board: None, Brand, or Person. The filters you already have (brand, person, category, personal, text) still work on top of it, and the board remembers your last choice.</p>
+  </div>
+
+  <div class="panel">
+    <h3 class="sub" style="margin-top:0">What IT needs to grant, and why (Q11)</h3>
+    <p>Claude reads your mailbox through a Microsoft 365 connection that IT approved as <strong>read-only</strong>. That is enough for the two-hour digest. It is not enough to <strong>flag</strong> an email or to put a <strong>draft</strong> in your Drafts folder.</p>
+    <p>To unlock flagging and drafting, an admin (Doug or Rob) adds one permission to that connection: <strong>Mail.ReadWrite</strong>. Where: Microsoft Entra admin center → Enterprise applications → the Claude app → Permissions → Grant admin consent. It takes a few minutes. We are <em>not</em> asking for Mail.Send, because Virginia never sends email for you.</p>
+    <p>Two small, optional extras IT could grant at the same time: <strong>People.Read</strong> (lets Claude look up a coworker's address) and <strong>Team.ReadBasic.All</strong> (lets Claude list your Teams). Neither is required.</p>
+    <p>The 7 am brief by email (Q14) is separate. The cleanest route needs no IT at all: a small email service account in your name that the app uses to email you. That is decision R3 below.</p>
+  </div>
+
+  <div class="panel">
+    <h3 class="sub" style="margin-top:0">Still needed to make it fully working</h3>
+    <ol>
+      <li>GitHub account and repository, then push the code <span class="tag you">you, via the wizard</span></li>
+      <li>Railway account, project from the repo, storage volume, settings <span class="tag you">you, via the wizard</span></li>
+      <li>Anthropic API key with a spend limit <span class="tag you">you, via the wizard</span></li>
+      <li>Connect the Virginia project in Claude to the deployed app <span class="tag you">you, wizard stage 9</span></li>
+      <li>Mail.ReadWrite on the Claude connection, for flagging and drafts <span class="tag it">IT (Doug/Rob)</span></li>
+      <li>Email service account for the 7 am brief, if you choose that route <span class="tag you">5 minutes</span></li>
+      <li>Schedule the two-hour digest and the 7 am brief once the app is live <span class="tag me">me</span></li>
+      <li>Import the Brain Dump and tidy the roster in Settings <span class="tag you">10 minutes</span></li>
+    </ol>
+    <p>The wizard is <code>docs/SETUP-WIZARD.sh</code> in the project folder. Run it in Git Bash with <code>bash docs/SETUP-WIZARD.sh</code>; it opens each site and tells you what to click.</p>
+  </div>
+
+  <h2>Five more decisions</h2>
+  <div id="questions"></div>
+
+  <h2>Your answers as text</h2>
+  <p class="muted">Updates as you click. The button below copies it.</p>
+  <textarea class="out" id="out" readonly></textarea>
+</main>
+
+<div class="actions">
+  <div class="bar">
+    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+      <button class="btn primary" id="copy">Copy my answers</button>
+      <button class="btn" id="acceptAll">Accept all recommendations</button>
+      <button class="btn" id="clear">Clear</button>
+    </div>
+    <div class="status" id="status"></div>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = [
+  { id: "R1", title: "Default board grouping", ask: "When you open the Board, how should it be grouped? You can switch any time; the app remembers your choice per device.", opts: [
+    "Rows per brand",
+    "Rows per person",
+    "No rows, plain columns" ] },
+  { id: "R2", title: "What goes in the 7 am brief", ask: "The brief is built by the app from the tracker and shown on the Briefs page (and emailed, see R3).", opts: [
+    "Overdue, due today and this week, high-priority items, items with no owner, captures waiting for review, what was added yesterday, and the latest email digest",
+    "Only my own items for today",
+    "A different list (type it below)" ] },
+  { id: "R3", title: "How the brief reaches your email", ask: "Virginia never sends email on your behalf; this is a message to you only.", opts: [
+    "A small email service (Resend) signed up with your KSI address: free, no IT, about five minutes to set up",
+    "Ask IT to add Mail.Send to the Claude connection and let the routine email you",
+    "In the app only for now" ] },
+  { id: "R4", title: "Which days", ask: "When should the 7 am brief run?", opts: [
+    "Weekdays only",
+    "Every day" ] },
+  { id: "R5", title: "The IT request", ask: "Should I write the request to Doug/Rob for you to send?", opts: [
+    "Yes, draft it; I will send it",
+    "No, I will handle it" ] },
+];
+const LETTERS = "abcdefgh"; const KEY = "virginia-round2-answers";
+let state = {}; try { state = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { state = {}; }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c])); }
+function render() {
+  const host = document.getElementById("questions");
+  host.innerHTML = QUESTIONS.map(q => { const a = state[q.id] || {}; const answered = a.choice !== undefined || (a.text && a.text.trim());
+    return `<section class="q ${answered ? "answered" : ""}" data-q="${q.id}"><span class="num">${q.id}</span><h3>${esc(q.title)}</h3><p>${esc(q.ask)}</p>
+      <div class="opts">${q.opts.map((o,i) => `<button type="button" class="opt ${a.choice===i?"selected":""}" data-i="${i}" aria-pressed="${a.choice===i}"><span class="k">${LETTERS[i]})</span><span>${esc(o)}</span>${i===0?'<span class="rec">Recommended</span>':""}</button>`).join("")}</div>
+      <div class="own"><label for="own-${q.id}">Or type your own answer</label><input id="own-${q.id}" type="text" value="${esc(a.text||"")}" placeholder="Your words" /></div></section>`; }).join("");
+  host.querySelectorAll(".opt").forEach(btn => btn.addEventListener("click", () => { const qid = btn.closest(".q").dataset.q; const i = Number(btn.dataset.i); const cur = state[qid] || {}; state[qid] = { ...cur, choice: cur.choice === i ? undefined : i }; save(); render(); }));
+  host.querySelectorAll(".own input").forEach(inp => inp.addEventListener("input", () => { const qid = inp.closest(".q").dataset.q; state[qid] = { ...(state[qid]||{}), text: inp.value }; save(); updateOut(); }));
+  updateOut();
+}
+function compile() {
+  const lines = ["Virginia — Round 2 answers (Brandon, " + new Date().toLocaleDateString("en-US", { timeZone: "America/Detroit" }) + ")", ""]; const open = [];
+  for (const q of QUESTIONS) { const a = state[q.id] || {}; const parts = [];
+    if (a.choice !== undefined) parts.push(LETTERS[a.choice] + ") " + q.opts[a.choice] + (a.choice === 0 ? " [recommended]" : ""));
+    if (a.text && a.text.trim()) parts.push('own words: "' + a.text.trim() + '"');
+    if (!parts.length) { open.push(q.id); continue; } lines.push(q.id + " " + q.title + ": " + parts.join(" — ")); }
+  if (open.length) { lines.push(""); lines.push("Not answered yet: " + open.join(", ")); } return lines.join("\n");
+}
+function updateOut() { document.getElementById("out").value = compile();
+  const n = QUESTIONS.filter(q => { const a = state[q.id]||{}; return a.choice !== undefined || (a.text && a.text.trim()); }).length; document.getElementById("count").textContent = n;
+  document.querySelectorAll(".q").forEach(sec => { const a = state[sec.dataset.q]||{}; sec.classList.toggle("answered", a.choice !== undefined || !!(a.text && a.text.trim())); }); }
+function flash(msg) { const s = document.getElementById("status"); s.textContent = msg; clearTimeout(flash.t); flash.t = setTimeout(() => { s.textContent = ""; }, 4000); }
+document.getElementById("copy").addEventListener("click", async () => { const text = compile();
+  try { await navigator.clipboard.writeText(text); flash("Copied. Paste it into the Claude Code chat."); }
+  catch (e) { const out = document.getElementById("out"); out.focus(); out.select(); try { document.execCommand("copy"); flash("Copied. Paste it into the Claude Code chat."); } catch (e2) { flash("Could not copy automatically. The text is selected below; press Ctrl+C."); } } });
+document.getElementById("acceptAll").addEventListener("click", () => { for (const q of QUESTIONS) { const a = state[q.id]||{}; if (a.choice === undefined && !(a.text && a.text.trim())) state[q.id] = { ...a, choice: 0 }; } save(); render(); flash("Recommended answers filled in for every open question."); });
+document.getElementById("clear").addEventListener("click", () => { if (!confirm("Clear all answers on this page?")) return; state = {}; save(); render(); flash("Cleared."); });
+render();
+</script>
+</body>
+</html>

@@ -4,7 +4,7 @@ import { Icon } from "@/components/Icon";
 import { useBootstrap } from "@/lib/bootstrap";
 import { useToast } from "@/lib/toast";
 
-const TOOLS = ["list_items", "get_item", "add_items", "update_item", "get_agenda", "get_today", "search", "list_reference", "add_brief"];
+const TOOLS = ["list_items", "get_item", "add_items", "update_item", "get_agenda", "get_today", "search", "list_reference", "add_brief", "run_daily_brief"];
 
 /** `https://host/mcp/abc123…` → `https://host/mcp/••••••••••••` so the token is not on screen by default. */
 function maskUrl(url: string): string {

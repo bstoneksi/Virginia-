@@ -1317,6 +1317,38 @@ export class Repo {
     if (Number(result.changes) === 0) throw new NotFoundError(`Unknown brief: ${id}`);
   }
 
+  /** Newest brief of `kind`; with `sinceISO`, only one created at or after that instant. Null when there is none. */
+  latestBrief(kind: BriefKind, sinceISO?: string): Brief | null {
+    if (!isIn(BRIEF_KINDS, kind)) throw new ValidationError(`Invalid brief kind: ${String(kind)}`);
+    const row =
+      sinceISO === undefined
+        ? this.stmt(`SELECT ${BRIEF_COLS} FROM briefs WHERE kind = ? ORDER BY created_at DESC, rowid DESC LIMIT 1`).get(kind)
+        : this.stmt(`SELECT ${BRIEF_COLS} FROM briefs WHERE kind = ? AND created_at >= ? ORDER BY created_at DESC, rowid DESC LIMIT 1`).get(
+            kind,
+            sinceISO,
+          );
+    return row ? rowToBrief(row) : null;
+  }
+
+  // ----- settings ----------------------------------------------------------
+
+  /** Value of an app setting (table `settings`), or null when the key was never set. */
+  getSetting(key: string): string | null {
+    const row = this.stmt("SELECT value FROM settings WHERE key = ?").get(key);
+    return row ? asString(row.value) : null;
+  }
+
+  /** Upsert an app setting; `null` removes the key. */
+  setSetting(key: string, value: string | null): void {
+    const k = String(key ?? "").trim();
+    if (k.length === 0 || k.length > 100) throw new ValidationError("Setting key must be 1–100 characters");
+    if (value === null) {
+      this.stmt("DELETE FROM settings WHERE key = ?").run(k);
+      return;
+    }
+    this.stmt("INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").run(k, value);
+  }
+
   // ----- sessions ----------------------------------------------------------
 
   createSession(ttlMs: number = SESSION_TTL_MS): Session {

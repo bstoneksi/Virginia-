@@ -6,7 +6,7 @@ This is the contract every builder works from. `shared/types.ts` is the machine-
 
 1. **Nothing the AI proposes lands in the tracker without review.** Extraction produces `proposals`; only an explicit accept creates an `item`. (The MCP `add_items` tool is the one exception: Claude-in-chat is Brandon acting deliberately.)
 2. **Done items are never deleted by the app.** Status `Done` keeps the row; hard delete exists only as an explicit, confirmed action.
-3. **The app never sends email, never touches the mailbox.** Email lives in a separate routine outside this codebase.
+3. **The app never touches the mailbox and never sends email on Brandon's behalf.** Email triage lives in a separate routine outside this codebase. The one message the app itself sends is the daily brief (§11): to Brandon only, about his own tracker, from the app's own sender — his Round 1 answer to Q14 ("a 7am brief on both the app and into my email"), recorded in `docs/DECISIONS.md`.
 4. **Single user.** Every `/api/*` route except `/api/health` and `/api/auth/login` requires a valid session cookie **or** `Authorization: Bearer <MCP_TOKEN>`. `/mcp/:token` requires `token === MCP_TOKEN` (constant-time compare). `DISABLE_AUTH=1` bypasses auth for local dev only and must log a loud warning at boot.
 5. **Mobile first.** Every page must be usable at 375 px wide with 44 px tap targets; desktop gets a sidebar.
 6. **No native modules.** SQLite is `node:sqlite` (`DatabaseSync`). Do not add better-sqlite3, sharp, etc.
@@ -26,7 +26,7 @@ This is the contract every builder works from. `shared/types.ts` is the machine-
 | Imports | extensionless relative imports (`../db/repo`), `@shared/*` alias only inside `client/` |
 | IDs | items/captures/proposals/briefs: `crypto.randomUUID()` strings; people/initiatives/events: integer autoincrement |
 | Dates | `created_at`/`updated_at` ISO-8601 UTC strings; `due_date` is `YYYY-MM-DD` (no time); display in America/Detroit |
-| Config | `server/config.ts` reads env once (`PORT`, `DATA_DIR`, `APP_PASSWORD`, `SESSION_SECRET`, `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `MCP_TOKEN`, `DISABLE_AUTH`); loads `.env` via `process.loadEnvFile` if present |
+| Config | `server/config.ts` reads env once (`PORT`, `DATA_DIR`, `APP_PASSWORD`, `SESSION_SECRET`, `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `MCP_TOKEN`, `DISABLE_AUTH`, plus the daily-brief variables of §11: `BRIEF_ENABLED`, `BRIEF_TIME`, `BRIEF_DAYS`, `BRIEF_SECTIONS`, `BRIEF_SCOPE`, `RESEND_API_KEY`, `BRIEF_EMAIL_TO`, `BRIEF_EMAIL_FROM`); loads `.env` via `process.loadEnvFile` if present; a malformed value throws at boot |
 
 Scripts: `npm run dev` (server :3000 + Vite :5173 with `/api` and `/mcp` proxied), `npm run build`, `npm start`, `npm run typecheck`, `npm test`, `npm run check` (all three).
 
@@ -68,6 +68,7 @@ capture_files(id TEXT PK, capture_id TEXT NOT NULL REFERENCES captures(id) ON DE
 proposals(id TEXT PK, capture_id TEXT NOT NULL REFERENCES captures(id) ON DELETE CASCADE, state TEXT NOT NULL DEFAULT 'proposed' CHECK(state IN ('proposed','accepted','rejected')), item_id TEXT NULL REFERENCES items(id), draft TEXT NOT NULL /* JSON ItemDraft */, confidence REAL NOT NULL DEFAULT 0.5, inferred INTEGER NOT NULL DEFAULT 0, source_excerpt TEXT NULL, warnings TEXT NOT NULL DEFAULT '[]', sort_order INTEGER NOT NULL DEFAULT 0)
 briefs(id TEXT PK, kind TEXT NOT NULL CHECK(kind IN ('email_digest','daily','other')), title TEXT NOT NULL, body_md TEXT NOT NULL, created_at TEXT NOT NULL)
 sessions(id TEXT PK, created_at TEXT NOT NULL, expires_at TEXT NOT NULL)
+settings(key TEXT PK, value TEXT NOT NULL)   -- server state, e.g. the daily brief's last run date / last email error (§11)
 schema_version(version INTEGER NOT NULL)
 ```
 Indexes: `items(status, rank)`, `items(owner_initials)`, `items(division_code)`, `items(due_date)`, `proposals(capture_id)`, `item_events(item_id)`. `PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;` at open.
@@ -111,6 +112,8 @@ Import: `POST /api/import/preview` multipart `file` → `ImportPreview` · `POST
 
 Briefs: `GET /api/briefs?limit=20` → `Brief[]` · `POST /api/briefs { kind, title, bodyMd }` → 201 · `DELETE /api/briefs/:id` → 204.
 
+Daily brief (§11): `GET /api/briefs/status` → `DailyBriefStatus` (schedule, last run, email state, last email error) · `GET /api/briefs/daily/preview` → `DailyBriefPreview` (today's brief as it would be built now; nothing stored or sent) · `POST /api/briefs/daily/run` → `DailyBriefRunResult` `{ brief, emailed, emailError }` (builds, stores kind `daily`, emails when configured; counts as today's scheduled run).
+
 All list endpoints return arrays directly (no envelope). Validation errors → 422. Unknown ids → 404.
 
 ## 5. AI extraction contract (`server/ai/`)
@@ -145,6 +148,7 @@ Streamable HTTP at `POST/GET/DELETE /mcp/:token` (stateless mode is fine). Serve
 - `search { q }`
 - `list_reference {}` → people, divisions, initiatives
 - `add_brief { kind, title, bodyMd }` — how the email-digest routine drops summaries into the app
+- `run_daily_brief {}` — builds, stores and (when configured) emails the daily brief (§11); the same code path as `POST /api/briefs/daily/run`
 Settings page shows the full URL to paste into Claude → Settings → Connectors → Add custom connector.
 
 ## 7. Import (`server/import/`)
@@ -162,13 +166,14 @@ Pages:
 - `/login` — passphrase field, remembers via cookie.
 - `/` **Today** — sections Overdue / Due this week / High priority / Unowned, quick-add input (creates `A:` item for me), link to Inbox with count. Cards: tap opens Item drawer.
 - `/board` **Board** — four columns (Open, In Progress, Parked, Done-collapsed to last 30 days with "show all"); dnd-kit drag between/within columns → optimistic update + `POST /api/items/reorder`; filter bar (division, person, category, personal toggle, text); "+ New" button. Card: category badge, title, owner initials chip, division chip (division color), due date (red when overdue), priority dot, "inferred" is not shown here (only in review).
+  **Group by** (Round 1 Q6, added 2026-10-01): a `None · Brand · Person` segmented control in its own row under the filter bar. `None` is the flat board above. `Brand` and `Person` split it into swimlanes — one lane per brand/division or per owner, each repeating the same four status columns (one horizontally scrolling row per lane on a phone, a four-column grid on desktop) under a header with the division chip in its colour / the owner's avatar, the label and the visible-card count. Lane order: Brand → divisions with at least one visible card in `sortOrder`, then unknown codes, then "No brand" and "Personal" (`isPersonal` wins over a division code). Person → people with cards in full-name order, then unknown initials, then the owner's own lane "Brandon Stone (me)" **last**, holding his explicitly owned cards and the unowned ones (a blank owner means Brandon, as on his agenda — Brandon reads this view for other people's work); "Unassigned" when nobody is marked me. Lanes with nothing visible are hidden (lanes on screen when a drag starts stay put until it ends). Filters apply on top of the grouping. The choice is a layout preference kept per browser in `localStorage["virginia.board.groupBy"]`, default `DEFAULT_GROUP_BY` in `client/src/lib/boardPrefs.ts` (`none` until Round 2's R1 is answered). Dragging within a lane reorders / changes status exactly as on the flat board. Dragging a card into another lane also reassigns it: `PATCH /api/items/:id` with only the changed fields (`divisionCode` / `isPersonal` for Brand, `ownerInitials` for Person — a card arriving in the me lane gets Brandon's initials, cards already there keep a blank owner), then `POST /api/items/reorder` for the destination column, then a reload; a failed PATCH restores the snapshot with a toast, a failed reorder after a successful PATCH reloads the server's truth. In grouped mode the Done "Show all (N older)" toggle is one board-level button under the lanes. `/brands/:code` offers `None · Person` only (the division is fixed; a stored `brand` choice renders as `None` there). The grouping logic is pure and shared (`shared/boardGroups.ts`, tested by `npm test`).
 - `/people` list with counts of open items; `/people/:initials` **Agenda**: grouped by `CATEGORY_ORDER`, open first, parked at bottom greyed, "Copy agenda" (Markdown to clipboard), "Print" (print stylesheet), inline status change, quick add for this person (defaults owner/target).
 - `/brands` list; `/brands/:code` — board filtered to the division + agenda tab.
 - `/personal` — items with `isPersonal`, simple list grouped by status.
 - `/capture` **Inbox** — new capture form (textarea with placeholder showing grammar examples, context field, default division select, add photos/screenshots with `capture="environment"`), list of pending captures; `/capture/:id` **Review** — proposals as editable cards (category, title, note, owner, division, priority, due, personal, status), warnings and "inferred" tag, accept / reject / accept all / re-extract / discard; images shown; source excerpt shown under each card.
 - `/search` — one box, results grouped items / captures.
-- `/briefs` — list of briefs rendered from markdown (simple renderer, no external lib), newest first.
-- `/settings` — People (add/edit/archive, set "this is me"), Divisions (name/color), Initiatives, Import (file drop → preview table with per-row fix-ups → commit), Connector (MCP URL + copy), AI status, Logout.
+- `/briefs` — list of briefs rendered from markdown (simple renderer, no external lib), newest first; the daily brief (kind `daily`, §11) appears here with the same renderer, with a link to Settings → Daily brief.
+- `/settings` — People (add/edit/archive, set "this is me"), Divisions (name/color), Initiatives, Import (file drop → preview table with per-row fix-ups → commit), Connector (MCP URL + copy), Daily brief (§11: schedule, last run, email state and last error, "Preview today's brief" rendered with the Markdown renderer, "Send now" with a toast saying whether it was emailed, how to turn email on), AI status, Logout.
 - Item drawer (shared): edit every field, status buttons, comments + history, source capture link, delete (confirm).
 
 `api.ts`: typed wrapper over fetch with `credentials: 'include'`; 401 → redirect to `/login`; all DTOs from `@shared/types`. Keep state simple (React state + small hooks; no Redux). Colors from `CATEGORY_COLORS`/`STATUS_COLORS`/division `color`.
@@ -184,12 +189,14 @@ PWA: `manifest.webmanifest` (name Virginia, standalone, theme `#1B2A49`), `apple
 - Auth: every `/api/*` and `/mcp/*` route returns 401 without credentials (except health/login); wrong MCP token → 401.
 - No `any` leaks across `shared/types.ts` boundaries; no unhandled promise rejections in the server log during the smoke run.
 
-## 10. Deviations (as built — integration pass, 2026-09-30)
+## 10. Deviations (as built — integration passes, 2026-09-30 and 2026-10-01)
 
 Where the implementation knowingly departs from, or adds to, the sections above. Everything not listed here follows the spec as written; `shared/types.ts` remains authoritative where §4's prose is looser than the type (e.g. `ImportCommitResult` also carries `captureId`).
 
 **Contract (`shared/types.ts`, §4/§6)**
 - `Bootstrap` gained `anthropicModel` (the model id in use, shown in Settings → AI) and `mcpUrl` — the full connector URL `${origin}/mcp/${MCP_TOKEN}` that §6 requires the Settings page to show. The URL embeds the token, so `/api/bootstrap` stays behind `requireAuth`; it is `null` until `MCP_TOKEN` is set. The origin honours `X-Forwarded-Proto` / `X-Forwarded-Host` (Railway).
+- `Bootstrap` also carries `emailConfigured`, `briefTime` and `briefDays` (2026-10-01) so Settings → Daily brief renders the schedule before `GET /api/briefs/status` answers. The daily-brief DTOs (`DailyBriefStatus`, `DailyBriefRunResult`, `DailyBriefPreview`) and the section / scope enums (`BRIEF_SECTION_KEYS`, `BRIEF_SECTION_LABELS`, `BRIEF_SCOPES`) live in `shared/types.ts`; `server/brief/*` re-exports them.
+- A board drag that crosses a swimlane (§8 Group by) is persisted in two calls — `PATCH /api/items/:id` for the ownership / division change, then `POST /api/items/reorder` — rather than §4's single `reorder` call, which only moves items between *status* columns.
 
 **Auth / API (§0.4, §4)**
 - `GET /api/auth/me` is behind auth like every other route: anonymous callers get 401, which the login page treats as "not signed in".
@@ -231,3 +238,16 @@ Where the implementation knowingly departs from, or adds to, the sections above.
 - Compact controls (small buttons, segmented radios, filter chips) are 44 px tall — and at least 44 px wide for one-letter options — below the `md` breakpoint (§0.5) and shrink to their dense size only on desktop.
 - The SPA fallback answers 404 for asset-like paths (`/assets/*`, `/icons/*`, `/favicon.ico`, `/*.png|js|css|…`) instead of serving `index.html`, so a broken asset link is visible in devtools. The manifest lists 192 × 192 and 512 × 512 PNG icons (`purpose: any maskable`) for Android installability alongside the SVG and the 180 px apple-touch-icon.
 - The Board's due-date chip uses the same "soon" window as Today's *Due this week* bucket (`DUE_SOON_DAYS` from `shared/agenda.ts`: today .. today + 6); dragging a card into Done sets `completedAt` optimistically so the card stays in the collapsed Done column while the reorder saves.
+- The Group-by control (§8) is its own row directly under the filter bar, not a third control inside it: at 375 px the filter bar's right slot cannot hold it without crushing the division / person selects.
+- The brief's Markdown is rendered client-side by the same in-house renderer as every other brief; the server's HTML rendering (`server/brief/markdown.ts`) is used for the email only.
+
+## 11. Daily brief (`server/brief/`, Round 1 Q14 — added 2026-10-01)
+
+Brandon's answer to Q14: "I want a 7am brief on both the app and into my email." The app builds it itself from the tracker — nothing from Microsoft 365, nothing from IT.
+
+- **Content** (`build.ts`: `buildDailyBrief(repo, { todayISO, now, sections?, scope? })` → `{ title, bodyMd, plainText, html, counts }`). Title `Daily brief — Thu, Oct 1` (also the email subject). Body: greeting with the Detroit date and a bold one-line summary of the non-zero counts, then the sections in `BRIEF_SECTION_KEYS` order — **Overdue** (owner initials, division, status if not Open, `due Sep 29 (2 days late)`), **Due today**, **Due this week** (today + 1 .. + 6, weekday-prefixed), **High priority** (not already listed), **Needs an owner**, **Waiting for review** (pending captures, `N to review`), **Added yesterday** (Detroit calendar day), **Latest email digest** (the newest `email_digest` brief of the last 24 h quoted verbatim, else "No digest yet"). Buckets come from `shared/agenda.ts` `todayBuckets` — nothing is re-bucketed. Empty sections say "Nothing." `BRIEF_SECTIONS` picks / orders sections; `BRIEF_SCOPE=all|mine` (default `all`: everyone's items with owner initials; `mine`: Brandon's own and unowned, like Today). Markdown first; the plain-text and inline-styled HTML email parts are derived from it (`markdown.ts`, escaper-based, same grammar as the client renderer).
+- **Run** (`run.ts`: `runDailyBrief`). Build → store as `briefs` kind `daily` → email. An email failure never fails the run: it is logged and recorded. `settings` keys: `daily_brief_last_run_date` (Detroit `YYYY-MM-DD`), `daily_brief_last_run_at`, `daily_brief_last_email_error` (removed by the next successful send), `daily_brief_last_emailed_at`.
+- **Schedule** (`scheduler.ts`). A 60 s unref'd interval; the pure `shouldRunNow` says yes when today is in `BRIEF_DAYS`, the Detroit time is at or past `BRIEF_TIME` and the last run date is before today — so a server asleep at 07:00 (a redeploy) catches up on its first tick, nothing runs twice a day, and a missed weekday is not backfilled on the weekend. `BRIEF_TIME` is `HH:MM` 24-hour (default `07:00`); `BRIEF_DAYS` accepts `weekdays` / `Mon-Fri` (default), `daily`, lists and ranges. Off under `NODE_ENV=test` or `BRIEF_ENABLED=0`; the run route and the MCP tool work regardless. Timezone is America/Detroit, like the rest of the server (`todayISO`).
+- **Email** (`email.ts`). `EmailSender` is the one seam: `createResendSender` posts `{ from, to: [to], subject, text, html }` to `https://api.resend.com/emails` with `Authorization: Bearer <RESEND_API_KEY>` (global `fetch`, no SDK, 15 s timeout; non-2xx → `EmailSendError` "Resend responded 403: …"); without the key the noop sender logs "email not configured" and `emailed` is `false`. `BRIEF_EMAIL_TO` (default `bstone@teamksi.com`, one address), `BRIEF_EMAIL_FROM` (default `Virginia <onboarding@resend.dev>` — Resend delivers that sender only to the account's sign-up address; a sender on `teamksi.com` needs the domain verified in Resend, i.e. DNS records).
+- **Surfaces**: the three routes in §4, the MCP tool `run_daily_brief` (§6), `Bootstrap.emailConfigured / briefTime / briefDays`, Settings → **Daily brief** and `/briefs` (§8).
+- **Rule**: this is the one email the app sends — to Brandon only, about his own tracker, from the app's own sender. It never reads or touches the mailbox and never writes to anyone else (§0.3).

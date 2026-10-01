@@ -1,6 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { parseBriefScope, parseBriefSections } from "./brief/build";
+import type { BriefScope, BriefSectionKey } from "./brief/build";
+import { DEFAULT_BRIEF_EMAIL_FROM, DEFAULT_BRIEF_EMAIL_TO } from "./brief/email";
+import { parseBriefDays, parseBriefTime } from "./brief/scheduler";
+import type { Weekday } from "./brief/scheduler";
 
 export interface Config {
   port: number;
@@ -19,6 +24,29 @@ export interface Config {
   clientDistDir: string;
   /** Absolute path to the repository root. */
   rootDir: string;
+  /** Daily brief scheduler on/off (BRIEF_ENABLED, default on). `POST /api/briefs/daily/run` works either way. */
+  briefEnabled: boolean;
+  /** Local time the brief is generated, `HH:MM` 24-hour in America/Detroit (BRIEF_TIME, default 07:00). */
+  briefTime: string;
+  /** Days the brief runs, in week order (BRIEF_DAYS, default Mon–Fri; "daily" = every day). */
+  briefDays: Weekday[];
+  /** Sections to include in order (BRIEF_SECTIONS); null = all. */
+  briefSections: BriefSectionKey[] | null;
+  /** "all" = everyone's items with owner initials (default); "mine" = Brandon's own and unowned (BRIEF_SCOPE). */
+  briefScope: BriefScope;
+  /** Resend API key (RESEND_API_KEY); null = the brief stays in the app, no email. */
+  resendApiKey: string | null;
+  /** Recipient of the emailed brief (BRIEF_EMAIL_TO). */
+  briefEmailTo: string;
+  /** Sender (BRIEF_EMAIL_FROM); Resend's onboarding sender only delivers to the account owner's address. */
+  briefEmailFrom: string;
+}
+
+const EMAIL_RE = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/;
+
+function nonEmpty(value: string | undefined): string | null {
+  const s = value?.trim() ?? "";
+  return s.length > 0 ? s : null;
 }
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -67,6 +95,11 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
 
   const dataDir = path.resolve(rootDir, env.DATA_DIR && env.DATA_DIR.length > 0 ? env.DATA_DIR : "./data");
 
+  // Daily brief (server/brief). Parsers throw on a typo so a bad value is caught at boot, like the auth settings above.
+  const briefEnabled = !["0", "false", "no", "off"].includes((env.BRIEF_ENABLED ?? "").trim().toLowerCase());
+  const briefEmailTo = nonEmpty(env.BRIEF_EMAIL_TO) ?? DEFAULT_BRIEF_EMAIL_TO;
+  if (!EMAIL_RE.test(briefEmailTo)) throw new Error(`BRIEF_EMAIL_TO must be an email address, got "${briefEmailTo}"`);
+
   return {
     port: Number.parseInt(env.PORT ?? "3000", 10) || 3000,
     dataDir,
@@ -80,5 +113,13 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     version: readVersion(),
     clientDistDir: path.join(rootDir, "client", "dist"),
     rootDir,
+    briefEnabled,
+    briefTime: parseBriefTime(env.BRIEF_TIME),
+    briefDays: parseBriefDays(env.BRIEF_DAYS),
+    briefSections: parseBriefSections(env.BRIEF_SECTIONS),
+    briefScope: parseBriefScope(env.BRIEF_SCOPE),
+    resendApiKey: nonEmpty(env.RESEND_API_KEY),
+    briefEmailTo,
+    briefEmailFrom: nonEmpty(env.BRIEF_EMAIL_FROM) ?? DEFAULT_BRIEF_EMAIL_FROM,
   };
 }

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router";
 import type { Brief, BriefKind } from "@shared/types";
 import { api, errorMessage } from "@/api";
 import { Chip } from "@/components/Badges";
@@ -93,14 +94,24 @@ export function BriefsPage() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-sm text-slate-500">Summaries dropped in by the email-digest routine (via the MCP connector) and your own notes.</p>
+        <p className="text-sm text-slate-500">
+          The daily 7 am brief, summaries dropped in by the email-digest routine (via the MCP connector) and your own notes.{" "}
+          <Link to="/settings?tab=brief" className="whitespace-nowrap font-medium text-brand underline">
+            Daily brief settings
+          </Link>
+        </p>
         <Button variant="secondary" size="sm" onClick={() => setAdding(true)} className="shrink-0">
           <Icon name="plus" className="h-4 w-4" /> Note
         </Button>
       </div>
       {briefs.loading && !briefs.data && <LoadingState />}
       {briefs.error && !briefs.data && <ErrorState error={briefs.error} onRetry={() => void briefs.reload(false)} />}
-      {briefs.data && sorted.length === 0 && <EmptyState title="No briefs yet" hint="Once the Virginia connector is set up, the email digest will appear here every couple of hours." />}
+      {briefs.data && sorted.length === 0 && (
+        <EmptyState
+          title="No briefs yet"
+          hint="The daily brief lands here every weekday at 7 am (Settings → Daily brief can send one now); once the Virginia connector is set up, the email digest appears every couple of hours."
+        />
+      )}
       {sorted.map((b) => (
         <BriefCard key={b.id} brief={b} onDelete={(x) => void remove(x)} />
       ))}

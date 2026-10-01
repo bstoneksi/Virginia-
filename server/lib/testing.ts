@@ -37,6 +37,15 @@ export function testConfig(overrides: Partial<Config> = {}): Config {
     version: "test",
     clientDistDir: path.join(rootDir, "client", "dist"),
     rootDir,
+    // Daily brief: scheduler off (tests call the routes / tick by hand), weekday defaults, no email provider.
+    briefEnabled: false,
+    briefTime: "07:00",
+    briefDays: ["Mon", "Tue", "Wed", "Thu", "Fri"],
+    briefSections: null,
+    briefScope: "all",
+    resendApiKey: null,
+    briefEmailTo: "bstone@teamksi.com",
+    briefEmailFrom: "Virginia <onboarding@resend.dev>",
     ...overrides,
   };
 }

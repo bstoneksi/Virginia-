@@ -18,6 +18,8 @@ import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
 import { BRIEF_KINDS, CATEGORIES, PRIORITIES, STATUSES } from "../../shared/types";
 import type { Agenda } from "../../shared/types";
+import { createEmailSender } from "../brief/email";
+import { runDailyBrief } from "../brief/run";
 import type { Config } from "../config";
 import type { McpRequestHandler } from "../contracts";
 import type { Db } from "../db/index";
@@ -45,6 +47,7 @@ export const MCP_TOOL_NAMES = [
   "search",
   "list_reference",
   "add_brief",
+  "run_daily_brief",
 ] as const;
 
 const INSTRUCTIONS = [
@@ -295,6 +298,29 @@ export function buildMcpServer(repo: Repo, config: Config): McpServer {
       annotations: writes,
     },
     async (input) => attempt(() => jsonResult(repo.createBrief(input))),
+  );
+
+  server.registerTool(
+    "run_daily_brief",
+    {
+      title: "Run the daily brief",
+      description:
+        "Generate Brandon's daily brief now — overdue, due today / this week, high priority, unowned items, captures waiting for review, what was added yesterday and the latest email digest — store it on the Briefs page (kind daily) and email it when RESEND_API_KEY is set. Same as POST /api/briefs/daily/run; counts as today's scheduled run. Returns { brief, emailed, emailError }. Takes no arguments.",
+      // No inputSchema: zero-argument tools must accept a call that omits `arguments` entirely.
+      annotations: writes,
+    },
+    async () =>
+      attempt(async () =>
+        jsonResult(
+          await runDailyBrief({
+            repo,
+            sender: createEmailSender(config),
+            to: config.briefEmailTo,
+            sections: config.briefSections,
+            scope: config.briefScope,
+          }),
+        ),
+      ),
   );
 
   return server;

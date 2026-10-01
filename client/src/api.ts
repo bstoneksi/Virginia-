@@ -13,6 +13,9 @@ import type {
   Capture,
   CaptureStatus,
   CaptureSummary,
+  DailyBriefPreview,
+  DailyBriefRunResult,
+  DailyBriefStatus,
   Division,
   ImportCommitResult,
   ImportPreview,
@@ -259,5 +262,9 @@ export const api = {
     list: (limit = 20) => request<Brief[]>("GET", "/api/briefs", { query: { limit } }),
     create: (input: BriefInput) => request<Brief>("POST", "/api/briefs", { body: input }),
     remove: (id: string) => request<void>("DELETE", `/api/briefs/${encodeURIComponent(id)}`),
+    // Daily brief (SPEC §11): schedule / last run, a dry run of today's brief, and "send now".
+    status: (signal?: AbortSignal) => request<DailyBriefStatus>("GET", "/api/briefs/status", { signal }),
+    preview: () => request<DailyBriefPreview>("GET", "/api/briefs/daily/preview"),
+    runDaily: () => request<DailyBriefRunResult>("POST", "/api/briefs/daily/run"),
   },
 };

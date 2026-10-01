@@ -54,6 +54,7 @@ The "<Assistant Name> tracker" connector is connected to this project. Use it in
 - `get_agenda` for a person or brand before a meeting — open items first, parked at the bottom.
 - `get_today`, `search`, `update_item`, `list_reference` as needed.
 - `add_brief` to drop a digest or summary onto my Briefs page.
+- `run_daily_brief` only when I explicitly ask to generate or resend today's brief — it is stored on my Briefs page and emailed when email is set up, and it counts as the day's scheduled run. For "what does my day look like?" use `get_today` instead.
 
 Confirm what you added in one short list. Flag anything that looks miscategorized, ambiguous, or missing required info rather than guessing.
 

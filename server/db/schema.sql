@@ -112,6 +112,12 @@ CREATE TABLE IF NOT EXISTS sessions (
   expires_at TEXT NOT NULL
 );
 
+-- Small key/value store for app state (daily brief: daily_brief_last_run_date, daily_brief_last_email_error, ...).
+CREATE TABLE IF NOT EXISTS settings (
+  key   TEXT PRIMARY KEY,
+  value TEXT NOT NULL
+);
+
 CREATE INDEX IF NOT EXISTS idx_items_status_rank ON items(status, rank);
 CREATE INDEX IF NOT EXISTS idx_items_owner       ON items(owner_initials);
 CREATE INDEX IF NOT EXISTS idx_items_division    ON items(division_code);

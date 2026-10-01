@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { useSearchParams } from "react-router";
 import { usePageTitle } from "@/lib/shell";
 import { AboutSettings } from "./settings/AboutSettings";
+import { BriefSettings } from "./settings/BriefSettings";
 import { ConnectorSettings } from "./settings/ConnectorSettings";
 import { DivisionsSettings } from "./settings/DivisionsSettings";
 import { ImportSettings } from "./settings/ImportSettings";
@@ -14,6 +15,7 @@ const TABS = [
   { id: "initiatives", label: "Initiatives" },
   { id: "import", label: "Import" },
   { id: "connector", label: "Connector" },
+  { id: "brief", label: "Daily brief" },
   { id: "about", label: "AI & account" },
 ] as const;
 
@@ -60,6 +62,7 @@ export function SettingsPage() {
       {tab === "initiatives" && <InitiativesSettings />}
       {tab === "import" && <ImportSettings />}
       {tab === "connector" && <ConnectorSettings />}
+      {tab === "brief" && <BriefSettings />}
       {tab === "about" && <AboutSettings />}
     </div>
   );

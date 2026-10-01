@@ -37,6 +37,9 @@ export function bootstrapRouter(deps: RouteDeps): Hono {
       anthropicModel: config.anthropicModel,
       mcpConfigured: config.mcpToken !== null,
       mcpUrl: config.mcpToken === null ? null : `${publicOrigin(c)}/mcp/${encodeURIComponent(config.mcpToken)}`,
+      emailConfigured: config.resendApiKey !== null,
+      briefTime: config.briefTime,
+      briefDays: [...config.briefDays],
       version: config.version,
     };
     return c.json(body);

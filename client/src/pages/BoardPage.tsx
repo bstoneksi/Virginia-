@@ -1,10 +1,12 @@
 import { useCallback, useMemo, useState } from "react";
 import { useSearchParams } from "react-router";
 import { Board } from "@/components/board/Board";
+import { GroupBySelect } from "@/components/board/GroupBySelect";
 import { Button } from "@/components/Field";
 import { FilterBar } from "@/components/FilterBar";
 import { Icon } from "@/components/Icon";
 import { NewItemModal } from "@/components/NewItemModal";
+import { useGroupBy } from "@/lib/boardPrefs";
 import { filtersFromParams, filtersToParams, type BoardFilters } from "@/lib/filters";
 import { usePageTitle } from "@/lib/shell";
 
@@ -12,6 +14,7 @@ export function BoardPage() {
   usePageTitle("Board");
   const [params, setParams] = useSearchParams();
   const filters = useMemo(() => filtersFromParams(params), [params]);
+  const [groupBy, setGroupBy] = useGroupBy();
   const [creating, setCreating] = useState(false);
 
   const onChange = useCallback(
@@ -30,7 +33,9 @@ export function BoardPage() {
           </Button>
         }
       />
-      <Board filters={filters} />
+      {/* Layout control, not a filter: lives in this browser (localStorage), not in the URL. */}
+      <GroupBySelect value={groupBy} onChange={setGroupBy} />
+      <Board filters={filters} groupBy={groupBy} />
       <NewItemModal
         open={creating}
         onClose={() => setCreating(false)}

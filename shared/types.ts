@@ -267,7 +267,73 @@ export interface Bootstrap {
    * It embeds the secret token, so the server only returns it to an authenticated session.
    */
   mcpUrl: string | null;
+  /** True when RESEND_API_KEY is set, i.e. the daily brief is also emailed (Settings shows the state). */
+  emailConfigured: boolean;
+  /** Local time (America/Detroit, 24-hour `HH:MM`) the daily brief is generated, e.g. "07:00". */
+  briefTime: string;
+  /** Days the daily brief runs, as three-letter English weekday names in week order, e.g. ["Mon", …, "Fri"]. */
+  briefDays: string[];
   version: string;
+}
+
+// --- Daily brief (server/brief, SPEC §11) -----------------------------------
+
+/** Sections of the daily brief, in default order (BRIEF_SECTIONS picks / reorders them). */
+export const BRIEF_SECTION_KEYS = ["overdue", "dueToday", "dueWeek", "highPriority", "needsOwner", "review", "addedYesterday", "digest"] as const;
+export type BriefSectionKey = (typeof BRIEF_SECTION_KEYS)[number];
+
+export const BRIEF_SECTION_LABELS: Record<BriefSectionKey, string> = {
+  overdue: "Overdue",
+  dueToday: "Due today",
+  dueWeek: "Due this week",
+  highPriority: "High priority",
+  needsOwner: "Needs an owner",
+  review: "Waiting for review",
+  addedYesterday: "Added yesterday",
+  digest: "Latest email digest",
+};
+
+/** `all` = everyone's items with owner initials (default); `mine` = Brandon's own and unowned items, like the Today page. */
+export const BRIEF_SCOPES = ["all", "mine"] as const;
+export type BriefScope = (typeof BRIEF_SCOPES)[number];
+
+/** `GET /api/briefs/status` — the schedule and what happened last. */
+export interface DailyBriefStatus {
+  /** Scheduler on (BRIEF_ENABLED); "Send now" works either way. */
+  enabled: boolean;
+  /** `HH:MM`, America/Detroit. */
+  time: string;
+  /** Three-letter weekday names in week order. */
+  days: string[];
+  /** null = every section. */
+  sections: BriefSectionKey[] | null;
+  scope: BriefScope;
+  /** YYYY-MM-DD (Detroit) of the last generated brief, or null before the first run. */
+  lastRunDate: string | null;
+  lastRunAt: string | null;
+  /** Message of the last failed email; cleared by the next successful send. */
+  lastEmailError: string | null;
+  lastEmailedAt: string | null;
+  /** True when RESEND_API_KEY is set. */
+  emailConfigured: boolean;
+  /** Recipient (BRIEF_EMAIL_TO). */
+  to: string;
+}
+
+/** `POST /api/briefs/daily/run` and the MCP tool `run_daily_brief`. */
+export interface DailyBriefRunResult {
+  brief: Brief;
+  /** False when email is not configured or the send failed (`emailError` says why). */
+  emailed: boolean;
+  emailError: string | null;
+}
+
+/** `GET /api/briefs/daily/preview` — today's brief as it would be generated now; nothing is stored or emailed. */
+export interface DailyBriefPreview {
+  title: string;
+  bodyMd: string;
+  html: string;
+  plainText: string;
 }
 
 export interface ImportRow {

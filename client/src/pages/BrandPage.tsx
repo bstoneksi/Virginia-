@@ -2,11 +2,13 @@ import { useCallback, useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router";
 import { AgendaView } from "@/components/AgendaView";
 import { Board } from "@/components/board/Board";
+import { GroupBySelect } from "@/components/board/GroupBySelect";
 import { Button, Segmented } from "@/components/Field";
 import { FilterBar } from "@/components/FilterBar";
 import { Icon } from "@/components/Icon";
 import { NewItemModal } from "@/components/NewItemModal";
 import { EmptyState } from "@/components/States";
+import { useGroupBy } from "@/lib/boardPrefs";
 import { useBootstrap } from "@/lib/bootstrap";
 import { filtersFromParams, filtersToParams, type BoardFilters } from "@/lib/filters";
 import { usePageTitle } from "@/lib/shell";
@@ -22,6 +24,9 @@ export function BrandPage() {
   const tab: Tab = params.get("tab") === "agenda" ? "agenda" : "board";
   const filters = useMemo(() => filtersFromParams(params), [params]);
   const fixed = useMemo(() => ({ divisionCode: code }), [code]);
+  const [groupBy, setGroupBy] = useGroupBy();
+  // The division is fixed here, so a "Brand" grouping (shared with the main Board) collapses to the flat layout.
+  const groupByHere = groupBy === "brand" ? "none" : groupBy;
   const [creating, setCreating] = useState(false);
 
   const setTab = (next: Tab) => {
@@ -85,7 +90,8 @@ export function BrandPage() {
               </Button>
             }
           />
-          <Board filters={filters} fixed={fixed} />
+          <GroupBySelect value={groupByHere} onChange={setGroupBy} hideBrand />
+          <Board filters={filters} fixed={fixed} groupBy={groupByHere} />
           <NewItemModal open={creating} onClose={() => setCreating(false)} initial={{ divisionCode: div.code, ownerInitials: filters.owner }} />
         </>
       ) : (

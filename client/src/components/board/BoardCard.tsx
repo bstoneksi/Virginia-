@@ -33,11 +33,17 @@ export function BoardCard({ item, onOpen }: BoardCardProps) {
   );
 }
 
-/** Static rendering used inside the DragOverlay. */
+/**
+ * Static rendering used inside the DragOverlay. dnd-kit measures the overlay by its first child, so the
+ * tilt sits on an inner element: an unrotated wrapper keeps the collision rect exactly over the card
+ * (a rotated first child put it ~2 px off, which made the first keyboard ArrowDown only "snap").
+ */
 export function BoardCardGhost({ item }: { item: Item }) {
   return (
-    <div className="rotate-1 cursor-grabbing shadow-xl">
-      <ItemCard item={item} variant="card" />
+    <div className="cursor-grabbing">
+      <div className="rotate-1 shadow-xl">
+        <ItemCard item={item} variant="card" />
+      </div>
     </div>
   );
 }

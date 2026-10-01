@@ -1,8 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import type { Bootstrap, Division, Initiative, Person } from "@shared/types";
+import type { AssistantInfo, Bootstrap, Division, Initiative, Person } from "@shared/types";
 import { api, errorMessage } from "@/api";
 import { FullScreenMessage } from "@/components/States";
 import { Button } from "@/components/Field";
+import { staticAssistantName } from "@/lib/assistant";
+import { setDisplayTimezone } from "@/lib/timezone";
 
 interface BootstrapContextValue {
   data: Bootstrap;
@@ -22,7 +24,10 @@ export function BootstrapProvider({ children }: { children: ReactNode }) {
     setError(null);
     api
       .bootstrap(controller.signal)
-      .then((result) => setData(result))
+      .then((result) => {
+        setDisplayTimezone(result.assistant.timezone);
+        setData(result);
+      })
       .catch((err: unknown) => {
         if (err instanceof DOMException && err.name === "AbortError") return;
         setError(errorMessage(err));
@@ -32,7 +37,9 @@ export function BootstrapProvider({ children }: { children: ReactNode }) {
 
   const reload = useCallback(async () => {
     try {
-      setData(await api.bootstrap());
+      const next = await api.bootstrap();
+      setDisplayTimezone(next.assistant.timezone);
+      setData(next);
     } catch (err) {
       setError(errorMessage(err));
     }
@@ -41,10 +48,11 @@ export function BootstrapProvider({ children }: { children: ReactNode }) {
   const value = useMemo(() => (data ? { data, reload } : null), [data, reload]);
 
   if (!value) {
+    const name = staticAssistantName();
     if (error) {
       return (
         <FullScreenMessage
-          title="Virginia can't reach the server"
+          title={`${name} can't reach the server`}
           detail={error}
           action={
             <Button onClick={() => setAttempt((a) => a + 1)} variant="primary">
@@ -54,7 +62,7 @@ export function BootstrapProvider({ children }: { children: ReactNode }) {
         />
       );
     }
-    return <FullScreenMessage title="Loading Virginia…" spinner />;
+    return <FullScreenMessage title={`Loading ${name}…`} spinner />;
   }
   return <BootstrapContext.Provider value={value}>{children}</BootstrapContext.Provider>;
 }
@@ -113,4 +121,11 @@ export function useBootstrap(): RefData {
       reload,
     };
   }, [data, reload]);
+}
+
+/** The configured assistant block of the bootstrap: name, tagline, owner, organization, timezone, colors. */
+export function useAssistant(): AssistantInfo {
+  const ctx = useContext(BootstrapContext);
+  if (!ctx) throw new Error("useAssistant must be used inside <BootstrapProvider>");
+  return ctx.data.assistant;
 }

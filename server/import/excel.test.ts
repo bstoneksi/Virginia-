@@ -1,15 +1,15 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import ExcelJS from "exceljs";
-import { SEED_DIVISIONS, SEED_PEOPLE } from "../../shared/types";
 import type { ImportRow } from "../../shared/types";
 import type { ExtractContext } from "../contracts";
 import { ValidationError } from "../lib/errors";
+import { exampleDivisions, examplePeople } from "../lib/testing";
 import { cellDataFromValue, parseImportFile, sniffFileKind } from "./excel";
 
 const ctx: ExtractContext = {
-  divisions: SEED_DIVISIONS,
-  people: SEED_PEOPLE.map((p, i) => ({ ...p, id: i + 1 })),
+  divisions: exampleDivisions,
+  people: examplePeople,
   initiatives: [{ id: 1, name: "BAU", status: "Active", createdAt: "2026-09-30T00:00:00.000Z" }],
 };
 

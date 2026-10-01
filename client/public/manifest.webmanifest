@@ -1,7 +1,7 @@
 {
   "name": "Virginia",
   "short_name": "Virginia",
-  "description": "Brandon's executive-assistant tracker",
+  "description": "Brandon Stone's Executive assistant tracker",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

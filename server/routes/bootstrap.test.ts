@@ -1,8 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { SEED_DIVISIONS, SEED_PEOPLE } from "../../shared/types";
 import type { Bootstrap } from "../../shared/types";
-import { TEST_MCP_TOKEN, call, json, makeTestApp } from "../lib/testing";
+import { TEST_MCP_TOKEN, call, exampleAssistantConfig, exampleDivisions, examplePeople, json, makeTestApp } from "../lib/testing";
 
 describe("GET /api/bootstrap", () => {
   it("returns the reference data, the model id and no connector URL while MCP_TOKEN is unset", async () => {
@@ -10,10 +9,21 @@ describe("GET /api/bootstrap", () => {
     const res = await call(t, "GET", "/api/bootstrap");
     assert.equal(res.status, 200);
     const body = await json<Bootstrap>(res);
-    assert.equal(body.divisions.length, SEED_DIVISIONS.length);
-    assert.equal(body.people.length, SEED_PEOPLE.length);
-    assert.equal(body.me?.initials, "BS");
-    assert.deepEqual(body.initiatives.map((i) => i.name), ["BAU"]);
+    assert.equal(body.divisions.length, exampleDivisions.length);
+    assert.equal(body.people.length, examplePeople.length);
+    assert.equal(body.me?.initials, exampleAssistantConfig.owner.initials);
+    assert.deepEqual(body.initiatives.map((i) => i.name), [exampleAssistantConfig.defaultInitiative]);
+    assert.deepEqual(body.assistant, {
+      name: exampleAssistantConfig.assistant.name,
+      tagline: exampleAssistantConfig.assistant.tagline,
+      ownerName: exampleAssistantConfig.owner.fullName,
+      ownerInitials: exampleAssistantConfig.owner.initials,
+      organization: exampleAssistantConfig.organization.name,
+      organizationShort: exampleAssistantConfig.organization.shortName,
+      timezone: exampleAssistantConfig.owner.timezone,
+      themeColor: exampleAssistantConfig.branding.themeColor,
+      accentColor: exampleAssistantConfig.branding.accentColor,
+    });
     assert.equal(body.aiConfigured, false);
     assert.equal(body.anthropicModel, "claude-opus-5-5");
     assert.equal(body.mcpConfigured, false);

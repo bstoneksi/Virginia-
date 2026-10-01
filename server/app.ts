@@ -64,7 +64,7 @@ export function createApp(deps: AppDeps): Hono {
     } catch {
       dbStatus = "error";
     }
-    const body: HealthResponse = { ok: dbStatus === "ok", version: config.version, db: dbStatus };
+    const body: HealthResponse = { ok: dbStatus === "ok", version: config.version, db: dbStatus, assistantName: config.assistant.assistant.name };
     return c.json(body, dbStatus === "ok" ? 200 : 503);
   });
 
@@ -106,7 +106,7 @@ export function createApp(deps: AppDeps): Hono {
     if (isAssetPath(c.req.path)) return c.text("Not found", 404);
     const indexPath = path.join(config.clientDistDir, "index.html");
     if (!fs.existsSync(indexPath)) {
-      return c.text("Virginia API is running, but the client has not been built. Run `npm run build` (or use `npm run dev`).", 200);
+      return c.text(`${config.assistant.assistant.name} API is running, but the client has not been built. Run \`npm run build\` (or use \`npm run dev\`).`, 200);
     }
     return c.html(fs.readFileSync(indexPath, "utf8"));
   });

@@ -27,8 +27,10 @@ export interface ExtractInput {
   context: string | null;
   /** Division code to assume when a line does not name one. */
   defaultDivisionCode: string | null;
-  /** YYYY-MM-DD in America/Detroit — used to resolve relative due dates. */
+  /** YYYY-MM-DD in the owner's timezone — used to resolve relative due dates. */
   todayISO: string;
+  /** IANA timezone `todayISO` was computed in (the owner's); America/Detroit when omitted. */
+  timezone?: string;
 }
 
 export interface ExtractContext {
@@ -67,7 +69,12 @@ export interface ImportFile {
   bytes: Uint8Array;
 }
 
-export type ParseImportFileFn = (file: ImportFile, ctx: ExtractContext) => Promise<ImportPreview>;
+export interface ParseImportOptions {
+  /** YYYY-MM-DD used to complete dates written without a year; today in America/Detroit when omitted. */
+  todayISO?: string;
+}
+
+export type ParseImportFileFn = (file: ImportFile, ctx: ExtractContext, options?: ParseImportOptions) => Promise<ImportPreview>;
 
 // ---------------------------------------------------------------------------
 // MCP endpoint (server/mcp/server.ts exports createMcpHandler(deps): McpRequestHandler)

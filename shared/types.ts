@@ -258,6 +258,8 @@ export interface Bootstrap {
   people: Person[];
   initiatives: Initiative[];
   me: Person | null;
+  /** The configured assistant — name, tagline, owner, organization, timezone, colors (assistant.config.json). */
+  assistant: AssistantInfo;
   aiConfigured: boolean;
   /** Model id extraction uses (ANTHROPIC_MODEL, default claude-opus-5-5) — shown in Settings → AI. */
   anthropicModel: string;
@@ -303,6 +305,23 @@ export interface HealthResponse {
   ok: boolean;
   version: string;
   db: "ok" | "error";
+  /** `assistant.name` from assistant.config.json, so the login page can show it before sign-in. */
+  assistantName: string;
+}
+
+/** The person-specific part of `Bootstrap`: assistant.config.json as the client needs it (no roster — that is `people`). */
+export interface AssistantInfo {
+  /** App title, phone icon label, connector name. */
+  name: string;
+  tagline: string;
+  ownerName: string;
+  ownerInitials: string;
+  organization: string;
+  organizationShort: string;
+  /** IANA timezone every displayed date and every "today" uses. */
+  timezone: string;
+  themeColor: string;
+  accentColor: string;
 }
 
 export interface ApiError {
@@ -342,43 +361,14 @@ export const PRIORITY_COLORS: Record<Priority, BadgeColor> = {
 };
 
 // ---------------------------------------------------------------------------
-// Seed data (applied once on an empty database; editable in Settings)
+// Documented defaults. The instance's own values — owner, roster, divisions, timezone, branding — live
+// in assistant.config.json (server/assistantConfig.ts) and seed an empty database from there.
 // ---------------------------------------------------------------------------
 
-export const ME_INITIALS = "BS";
+/** Default code of the division of kind "personal" (`personalDivisionCode` in assistant.config.json). */
 export const PERSONAL_DIVISION_CODE = "PTD";
+/** Default name of the initiative created on first run (`defaultInitiative` in assistant.config.json). */
 export const DEFAULT_INITIATIVE = "BAU";
-
-export const SEED_DIVISIONS: Division[] = [
-  { code: "K&B", name: "KSI Kitchen & Bath", kind: "brand", parentCode: null, color: "#1B2A49", textColor: "#FFFFFF", sortOrder: 10, archived: false },
-  { code: "K&B-S", name: "K&B Sales", kind: "brand", parentCode: "K&B", color: "#24406E", textColor: "#FFFFFF", sortOrder: 11, archived: false },
-  { code: "K&B-I", name: "K&B Installation", kind: "brand", parentCode: "K&B", color: "#2C4F87", textColor: "#FFFFFF", sortOrder: 12, archived: false },
-  { code: "K&B-O", name: "K&B Operations", kind: "brand", parentCode: "K&B", color: "#355FA0", textColor: "#FFFFFF", sortOrder: 13, archived: false },
-  { code: "APP", name: "KSI Appliances", kind: "brand", parentCode: null, color: "#6C3FA0", textColor: "#FFFFFF", sortOrder: 20, archived: false },
-  { code: "HG", name: "Henderson Glass", kind: "brand", parentCode: null, color: "#C0392B", textColor: "#FFFFFF", sortOrder: 30, archived: false },
-  { code: "PF", name: "Paramount Fence", kind: "brand", parentCode: null, color: "#1E6B3A", textColor: "#FFFFFF", sortOrder: 40, archived: false },
-  { code: "RF", name: "Riemer Floors", kind: "brand", parentCode: null, color: "#1F1F1F", textColor: "#FFFFFF", sortOrder: 50, archived: false },
-  { code: "TS", name: "TrueScale Studio", kind: "brand", parentCode: null, color: "#E67E22", textColor: "#1F1F1F", sortOrder: 60, archived: false },
-  { code: "FOB", name: "Family of Brands (Corporate)", kind: "function", parentCode: null, color: "#3A3A3A", textColor: "#FFFFFF", sortOrder: 70, archived: false },
-  { code: "ACC", name: "Accounting / Finance", kind: "function", parentCode: null, color: "#556270", textColor: "#FFFFFF", sortOrder: 80, archived: false },
-  { code: "S&M", name: "Sales & Marketing", kind: "function", parentCode: null, color: "#4A7C8C", textColor: "#FFFFFF", sortOrder: 90, archived: false },
-  { code: PERSONAL_DIVISION_CODE, name: "Personal", kind: "personal", parentCode: null, color: "#B08968", textColor: "#FFFFFF", sortOrder: 100, archived: false },
-];
-
-export const SEED_PEOPLE: Omit<Person, "id">[] = [
-  { initials: "BS", fullName: "Brandon Stone", divisionCode: "FOB", email: "bstone@teamksi.com", role: "CEO", isMe: true, archived: false },
-  { initials: "PH", fullName: "Patrick Hatch", divisionCode: null, email: null, role: null, isMe: false, archived: false },
-  { initials: "DK", fullName: "David Karras", divisionCode: null, email: null, role: null, isMe: false, archived: false },
-  { initials: "AG", fullName: "Amanda Gentner", divisionCode: "FOB", email: null, role: null, isMe: false, archived: false },
-  { initials: "DJ", fullName: "Darren Johnston", divisionCode: null, email: null, role: null, isMe: false, archived: false },
-  { initials: "MN", fullName: "Matthew Norton", divisionCode: null, email: "mnorton@teamksi.com", role: null, isMe: false, archived: false },
-  { initials: "SB", fullName: "Steve Bevel", divisionCode: "RF", email: "steve.bevel@riemerfloors.com", role: null, isMe: false, archived: false },
-  { initials: "VM", fullName: "Vincent Moynihan", divisionCode: "HG", email: "vince.moynihan@hendersonglass.com", role: null, isMe: false, archived: false },
-  { initials: "JM", fullName: "Joshua Miller", divisionCode: null, email: "josh.miller@teamksi.com", role: null, isMe: false, archived: false },
-  { initials: "MR", fullName: "Mark Renn", divisionCode: null, email: "mrenn@teamksi.com", role: null, isMe: false, archived: false },
-  { initials: "AN", fullName: "Amanda Norton", divisionCode: null, email: null, role: null, isMe: false, archived: false },
-  { initials: "JR", fullName: "Jennifer Rankin", divisionCode: null, email: null, role: null, isMe: false, archived: false },
-];
 
 // ---------------------------------------------------------------------------
 // Small pure helpers used on both sides

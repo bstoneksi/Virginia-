@@ -8,7 +8,8 @@
     "initials": "BS",
     "email": "bstone@teamksi.com",
     "role": "CEO",
-    "timezone": "America/Detroit"
+    "timezone": "America/Detroit",
+    "divisionCode": "FOB"
   },
   "organization": {
     "name": "KSI Family of Brands",

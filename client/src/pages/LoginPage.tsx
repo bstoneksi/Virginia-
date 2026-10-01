@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { api, ApiError, errorMessage } from "@/api";
 import { Button, TextInput } from "@/components/Field";
+import { staticAssistantDescription, staticAssistantName } from "@/lib/assistant";
 
 function safeNext(raw: string | null): string {
   if (!raw || !raw.startsWith("/") || raw.startsWith("//") || raw.startsWith("/login")) return "/";
@@ -15,9 +16,23 @@ export function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // The name stamped into index.html is right immediately; /api/health (no auth) confirms it from the server.
+  const [name, setName] = useState(staticAssistantName);
+  const tagline = staticAssistantDescription() ?? "Executive assistant tracker";
 
   useEffect(() => {
-    document.title = "Sign in · Virginia";
+    document.title = `Sign in · ${name}`;
+  }, [name]);
+
+  useEffect(() => {
+    api
+      .health()
+      .then((health) => {
+        if (health?.assistantName) setName(health.assistantName);
+      })
+      .catch(() => {
+        /* keep the stamped name */
+      });
     api.auth
       .me()
       .then((me) => {
@@ -53,8 +68,8 @@ export function LoginPage() {
               <path d="M30 34 L64 100 L98 34" fill="none" stroke="currentColor" strokeWidth="16" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </span>
-          <h1 className="text-xl font-semibold text-slate-900">Virginia</h1>
-          <p className="text-sm text-slate-500">Brandon's executive-assistant tracker</p>
+          <h1 className="text-xl font-semibold text-slate-900">{name}</h1>
+          <p className="text-sm text-slate-500">{tagline}</p>
         </div>
         <label className="block">
           <span className="mb-1 block text-xs font-medium text-slate-600">Passphrase</span>

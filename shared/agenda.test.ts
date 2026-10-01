@@ -129,6 +129,9 @@ describe("agendaToMarkdown", () => {
     const md = agendaToMarkdown({ subject: VM, groups: [], generatedAt: "2026-10-01T03:30:00.000Z" });
     assert.match(md, /^# Agenda — Vincent Moynihan \(2026-09-30\)/);
     assert.equal(formatDateDetroit("not a date"), "not a date".slice(0, 10));
+    // The owner's timezone from assistant.config.json is passed through; the default stays Detroit.
+    assert.equal(formatDateDetroit("2026-10-01T03:30:00.000Z", "UTC"), "2026-10-01");
+    assert.match(agendaToMarkdown({ subject: VM, groups: [], generatedAt: "2026-10-01T03:30:00.000Z" }, "Europe/Berlin"), /\(2026-10-01\)/);
   });
 
   it("says so when there is nothing to show", () => {

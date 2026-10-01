@@ -8,8 +8,8 @@ import { openDatabase } from "../db/index";
 import type { Db } from "../db/index";
 import { createRepo } from "../db/repo";
 import type { ItemDetail, Repo } from "../db/repo";
-import { testConfig } from "../lib/testing";
-import { MCP_SERVER_NAME, MCP_TOOL_NAMES, createMcpHandler } from "./server";
+import { exampleSeed, testConfig } from "../lib/testing";
+import { MCP_TOOL_NAMES, createMcpHandler, mcpServerName } from "./server";
 
 interface RpcResponse {
   jsonrpc: "2.0";
@@ -46,7 +46,7 @@ interface Fixture {
 /** The real app from createApp() with a hand-built Config (mcpToken "t") and the handler wired in. */
 function setup(): Fixture {
   const config = testConfig({ mcpToken: "t" });
-  const db = openDatabase(":memory:");
+  const db = openDatabase(":memory:", { seed: exampleSeed });
   const app = createApp({ config, db, mcpHandler: createMcpHandler({ db, config }) });
   return { app, db, repo: createRepo(db), config, path: "/mcp/t" };
 }
@@ -88,7 +88,7 @@ describe("MCP handler over the real app (/mcp/:token)", () => {
   it("answers initialize with the virginia server info and advertises tools", async () => {
     const { app, path, config } = setup();
     const init = await rpcResult<InitializeResult>(app, path, "initialize", INIT_PARAMS);
-    assert.equal(init.serverInfo.name, MCP_SERVER_NAME);
+    assert.equal(init.serverInfo.name, mcpServerName(config.assistant));
     assert.equal(init.serverInfo.version, config.version);
     assert.match(init.protocolVersion, /^\d{4}-\d{2}-\d{2}$/);
     assert.ok("tools" in init.capabilities);
@@ -282,7 +282,7 @@ describe("MCP handler over the real app (/mcp/:token)", () => {
 describe("MCP handler called directly with a constructed Request", () => {
   it("serves initialize → tools/list → tools/call list_items on a bare Hono route", async () => {
     const config = testConfig({ mcpToken: "t" });
-    const db = openDatabase(":memory:");
+    const db = openDatabase(":memory:", { seed: exampleSeed });
     const handler = createMcpHandler({ db, config });
     const app = new Hono().all("/mcp", (c) => handler(c));
 
@@ -292,7 +292,7 @@ describe("MCP handler called directly with a constructed Request", () => {
     const init = await app.request(post({ jsonrpc: "2.0", id: 1, method: "initialize", params: INIT_PARAMS }));
     assert.equal(init.status, 200);
     const initBody = (await init.json()) as RpcResponse;
-    assert.equal((initBody.result as InitializeResult).serverInfo.name, "virginia");
+    assert.equal((initBody.result as InitializeResult).serverInfo.name, mcpServerName(config.assistant));
 
     const list = await app.request(post({ jsonrpc: "2.0", id: 2, method: "tools/list" }));
     const listBody = (await list.json()) as RpcResponse;

@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { SEED_DIVISIONS, SEED_PEOPLE } from "../../shared/types";
 import type { Person } from "../../shared/types";
 import type { ExtractContext } from "../contracts";
+import { exampleDivisions, examplePeople } from "../lib/testing";
 import {
   buildImportRow,
   categoryForTable,
@@ -20,12 +20,12 @@ import {
 } from "./mapping";
 import type { DetectedTable, TableRow } from "./tables";
 
-const people: Person[] = SEED_PEOPLE.map((p, i) => ({ ...p, id: i + 1 }));
-const ctx: ExtractContext = { divisions: SEED_DIVISIONS, people, initiatives: [] };
+const people: Person[] = examplePeople;
+const ctx: ExtractContext = { divisions: exampleDivisions, people, initiatives: [] };
 const TODAY = "2026-09-30";
 
 describe("matchDivision", () => {
-  const code = (text: string): string | null => matchDivision(text, SEED_DIVISIONS)?.code ?? null;
+  const code = (text: string): string | null => matchDivision(text, exampleDivisions)?.code ?? null;
 
   it("matches codes and names exactly, case-insensitively", () => {
     assert.equal(code("HG"), "HG");
@@ -67,17 +67,17 @@ describe("matchDivision", () => {
     assert.equal(code("Sales"), null); // K&B Sales vs Sales & Marketing
     assert.equal(code(""), null);
     assert.equal(code("   "), null);
-    const archivedHG = SEED_DIVISIONS.map((d) => (d.code === "HG" ? { ...d, archived: true } : d));
+    const archivedHG = exampleDivisions.map((d) => (d.code === "HG" ? { ...d, archived: true } : d));
     assert.equal(matchDivision("Henderson", archivedHG), null);
   });
 
   it("falls back to a unique token overlap for divisions added later", () => {
-    const template = SEED_DIVISIONS[0];
+    const template = exampleDivisions[0];
     assert.ok(template);
-    const divisions = [...SEED_DIVISIONS, { ...template, code: "CE", name: "Cabinets Express", parentCode: null }];
+    const divisions = [...exampleDivisions, { ...template, code: "CE", name: "Cabinets Express", parentCode: null }];
     assert.equal(matchDivision("Cabinet Express", divisions)?.code, "CE"); // prefix + exact token overlap
     assert.equal(matchDivision("Express", divisions)?.code, "CE");
-    assert.equal(matchDivision("Cabinets Express", SEED_DIVISIONS), null); // not seeded → unmatched
+    assert.equal(matchDivision("Cabinets Express", exampleDivisions), null); // not seeded → unmatched
   });
 });
 

@@ -31,6 +31,7 @@ export function importerRouter(deps: RouteDeps): Hono {
     const preview = await deps.parseImportFile(
       { filename: upload.name || "import", bytes: new Uint8Array(await upload.arrayBuffer()) },
       extractContext(repo),
+      { todayISO: todayISO(new Date(), deps.config.assistant.owner.timezone) },
     );
     return c.json(preview);
   });
@@ -45,7 +46,7 @@ export function importerRouter(deps: RouteDeps): Hono {
       const tables = unique(rows.map((r) => r.table));
       const capture = repo.createCapture({
         kind: "import",
-        title: body.filename ? `Import: ${body.filename}` : `Import ${todayISO()}`,
+        title: body.filename ? `Import: ${body.filename}` : `Import ${todayISO(new Date(), deps.config.assistant.owner.timezone)}`,
         notes: [
           `Imported ${rows.length} row(s)${sheets.length > 0 ? ` from ${sheets.join(", ")}` : ""}`,
           ...(tables.length > 0 ? [`Tables: ${tables.join(", ")}`] : []),

@@ -1,6 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { loadAssistantConfig } from "./assistantConfig";
+import type { AssistantConfig } from "./assistantConfig";
 
 export interface Config {
   port: number;
@@ -19,6 +21,8 @@ export interface Config {
   clientDistDir: string;
   /** Absolute path to the repository root. */
   rootDir: string;
+  /** assistant.config.json — name, owner, roster, divisions, timezone, branding (server/assistantConfig.ts). */
+  assistant: AssistantConfig;
 }
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -80,5 +84,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     version: readVersion(),
     clientDistDir: path.join(rootDir, "client", "dist"),
     rootDir,
+    assistant: loadAssistantConfig(rootDir, env),
   };
 }

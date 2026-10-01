@@ -6,6 +6,7 @@ import { Button, Field, Select, TextArea, TextInput } from "@/components/Field";
 import { Icon } from "@/components/Icon";
 import { Sheet } from "@/components/Sheet";
 import { EmptyState, ErrorState, LoadingState } from "@/components/States";
+import { useAssistant } from "@/lib/bootstrap";
 import { useConfirm } from "@/lib/confirm";
 import { formatDateTime } from "@/lib/dates";
 import { Markdown } from "@/lib/markdown";
@@ -100,7 +101,7 @@ export function BriefsPage() {
       </div>
       {briefs.loading && !briefs.data && <LoadingState />}
       {briefs.error && !briefs.data && <ErrorState error={briefs.error} onRetry={() => void briefs.reload(false)} />}
-      {briefs.data && sorted.length === 0 && <EmptyState title="No briefs yet" hint="Once the Virginia connector is set up, the email digest will appear here every couple of hours." />}
+      {briefs.data && sorted.length === 0 && <EmptyState title="No briefs yet" hint={`Once the ${name} connector is set up, the email digest will appear here every couple of hours.`} />}
       {sorted.map((b) => (
         <BriefCard key={b.id} brief={b} onDelete={(x) => void remove(x)} />
       ))}

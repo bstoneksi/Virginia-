@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/Field";
 import { Icon } from "@/components/Icon";
-import { useBootstrap } from "@/lib/bootstrap";
+import { useAssistant, useBootstrap } from "@/lib/bootstrap";
 import { useToast } from "@/lib/toast";
 
 const TOOLS = ["list_items", "get_item", "add_items", "update_item", "get_agenda", "get_today", "search", "list_reference", "add_brief"];
@@ -14,6 +14,7 @@ function maskUrl(url: string): string {
 
 export function ConnectorSettings() {
   const { mcpConfigured, mcpUrl } = useBootstrap();
+  const { name } = useAssistant();
   const toast = useToast();
   const [revealed, setRevealed] = useState(false);
   const prefix = `${window.location.origin}/mcp/`;
@@ -37,7 +38,7 @@ export function ConnectorSettings() {
       <div className="rounded-xl border border-slate-200 bg-white p-4">
         <h3 className="text-sm font-semibold text-slate-900">Connector URL</h3>
         <p className="mt-1 text-sm text-slate-600">
-          The Virginia project in Claude talks to this tracker through a custom connector. The URL is this server plus the secret token set as{" "}
+          The {name} project in Claude talks to this tracker through a custom connector. The URL is this server plus the secret token set as{" "}
           <code className="rounded bg-slate-100 px-1">MCP_TOKEN</code>:
         </p>
         <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -73,8 +74,8 @@ export function ConnectorSettings() {
         <h3 className="text-sm font-semibold text-slate-900">Set it up in Claude</h3>
         <ol className="mt-2 list-decimal space-y-1.5 pl-5 text-sm text-slate-700">
           <li>Open Claude → Settings → Connectors → <strong>Add custom connector</strong>.</li>
-          <li>Name it <strong>Virginia</strong> and paste the URL above. No OAuth or extra header is needed — the token in the URL is the credential.</li>
-          <li>Enable it in the “Virginia – Executive Assistant” project.</li>
+          <li>Name it <strong>{name}</strong> and paste the URL above. No OAuth or extra header is needed — the token in the URL is the credential.</li>
+          <li>Enable it in the “{name} – Executive Assistant” project.</li>
           <li>
             Tools available:{" "}
             {TOOLS.map((tool, i) => (

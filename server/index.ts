@@ -1,13 +1,14 @@
 import { serve } from "@hono/node-server";
 import { createExtractor } from "./ai/extract";
 import { createApp } from "./app";
+import { toSeed } from "./assistantConfig";
 import { loadConfig } from "./config";
 import { openDatabase } from "./db/index";
 import { parseImportFile } from "./import/excel";
 import { createMcpHandler } from "./mcp/server";
 
 const config = loadConfig();
-const db = openDatabase(config.dataDir);
+const db = openDatabase(config.dataDir, { seed: toSeed(config.assistant) });
 
 // Wire every module into the app (docs/SPEC.md §2). `createApp` keeps these optional so tests can build
 // an app without them; here in the real boot all three are always present:
@@ -44,7 +45,7 @@ process.on("unhandledRejection", (reason) => {
 });
 
 const server = serve({ fetch: app.fetch, port: config.port, hostname: "0.0.0.0" }, (info) => {
-  console.log(`[boot] Virginia v${config.version} listening on http://localhost:${info.port}  (data: ${config.dataDir})`);
+  console.log(`[boot] ${config.assistant.assistant.name} v${config.version} listening on http://localhost:${info.port}  (data: ${config.dataDir})`);
 });
 
 function shutdown(signal: string): void {

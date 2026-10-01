@@ -1,18 +1,14 @@
-/** Date helpers. All display is in America/Detroit; due dates are plain YYYY-MM-DD. */
+/**
+ * Date helpers. All display is in the owner's timezone — `displayTimezone()` (from /api/bootstrap,
+ * America/Detroit until it loads); due dates are plain YYYY-MM-DD.
+ */
 import { DUE_SOON_DAYS } from "@shared/agenda";
+import { dateISOInTZ } from "@shared/timezone";
+import { displayTimezone } from "@/lib/timezone";
 
-export const TZ = "America/Detroit";
-
-/** Today's date as YYYY-MM-DD in America/Detroit. */
-export function todayISO(now: Date = new Date()): string {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: TZ,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(now);
-  const get = (type: string): string => parts.find((p) => p.type === type)?.value ?? "";
-  return `${get("year")}-${get("month")}-${get("day")}`;
+/** Today's date as YYYY-MM-DD in `tz` (the display timezone by default). */
+export function todayISO(now: Date = new Date(), tz: string = displayTimezone()): string {
+  return dateISOInTZ(now, tz);
 }
 
 /** Parse YYYY-MM-DD into a Date at UTC midnight (so formatting with timeZone UTC never shifts the day). */
@@ -67,12 +63,12 @@ export function dueLabel(iso: string | null, today: string = todayISO()): { text
   return { text: formatDue(iso, today), tone: "normal" };
 }
 
-/** ISO datetime → "Sep 30, 2:15 PM" (Detroit). */
-export function formatDateTime(iso: string): string {
+/** ISO datetime → "Sep 30, 2:15 PM" in `tz` (the display timezone by default). */
+export function formatDateTime(iso: string, tz: string = displayTimezone()): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
   return new Intl.DateTimeFormat("en-US", {
-    timeZone: TZ,
+    timeZone: tz,
     month: "short",
     day: "numeric",
     hour: "numeric",
@@ -80,11 +76,11 @@ export function formatDateTime(iso: string): string {
   }).format(d);
 }
 
-/** ISO datetime → "Sep 30, 2026" (Detroit). */
-export function formatDate(iso: string): string {
+/** ISO datetime → "Sep 30, 2026" in `tz` (the display timezone by default). */
+export function formatDate(iso: string, tz: string = displayTimezone()): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
-  return new Intl.DateTimeFormat("en-US", { timeZone: TZ, month: "short", day: "numeric", year: "numeric" }).format(d);
+  return new Intl.DateTimeFormat("en-US", { timeZone: tz, month: "short", day: "numeric", year: "numeric" }).format(d);
 }
 
 /** ISO datetime → "just now", "5m ago", "3h ago", "2d ago", else a date. */
@@ -102,9 +98,9 @@ export function formatRelative(iso: string, now: Date = new Date()): string {
   return formatDate(iso);
 }
 
-/** ISO datetime → YYYY-MM-DD in Detroit (for "completed in last 30 days" checks). */
-export function isoDateInTZ(iso: string): string {
+/** ISO datetime → YYYY-MM-DD in `tz` (the display timezone by default; for "completed in last 30 days" checks). */
+export function isoDateInTZ(iso: string, tz: string = displayTimezone()): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso.slice(0, 10);
-  return todayISO(d);
+  return todayISO(d, tz);
 }

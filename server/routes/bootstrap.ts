@@ -8,6 +8,7 @@
 import { Hono } from "hono";
 import type { Context } from "hono";
 import type { Bootstrap } from "../../shared/types";
+import { toAssistantInfo } from "../assistantConfig";
 import type { RouteDeps } from "./deps";
 
 function firstHeaderValue(value: string | undefined): string | undefined {
@@ -33,6 +34,7 @@ export function bootstrapRouter(deps: RouteDeps): Hono {
       people: repo.listPeople({ includeArchived: true }),
       initiatives: repo.listInitiatives(),
       me: repo.getMe(),
+      assistant: toAssistantInfo(config.assistant),
       aiConfigured: config.anthropicApiKey !== null,
       anthropicModel: config.anthropicModel,
       mcpConfigured: config.mcpToken !== null,

@@ -3,12 +3,13 @@ import { describe, it } from "node:test";
 import { emptyDraft } from "../../shared/types";
 import type { ItemDraft } from "../../shared/types";
 import type { ProposalDraft } from "../contracts";
+import { exampleSeed } from "../lib/testing";
 import { openDatabase } from "./index";
 import { ConflictError, NotFoundError, ValidationError, createRepo } from "./repo";
 import type { Repo } from "./repo";
 
 function fresh(): Repo {
-  return createRepo(openDatabase(":memory:"));
+  return createRepo(openDatabase(":memory:", { seed: exampleSeed }));
 }
 
 function draft(overrides: Partial<ItemDraft> = {}): ItemDraft {

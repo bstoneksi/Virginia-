@@ -9,3 +9,7 @@ data/*
 Thumbs.db
 .claude/launch.json
 *.zip
+
+# template packaging output
+dist-template/
+*.zip

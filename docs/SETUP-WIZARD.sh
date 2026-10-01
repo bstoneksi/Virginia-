@@ -209,9 +209,9 @@ ensure_secret() {
   fi
 }
 
-TOTAL_STAGES=10
+TOTAL_STAGES=11
 
-banner "Virginia setup"
+banner "Assistant setup"
 
 # ── 1 ─────────────────────────────────────────────────────────────────────
 stage "GitHub: an account"
@@ -220,7 +220,7 @@ if confirm "Do you already have a GitHub account you want to use?"; then
   note "Great — make sure you are signed in to it in your browser."
 else
   open_url "https://github.com/signup"
-  step "Sign up with bstone@teamksi.com (or a personal address), verify the email, and finish the prompts."
+  step "Sign up with your work email (or a personal address), verify the email, and finish the prompts."
   step "Choose the Free plan; you will only use a private repository."
 fi
 pause "Signed in to GitHub? Press Enter."
@@ -272,8 +272,8 @@ stage "Anthropic: API key with a spend limit"
 say "Captures (transcripts, photos of notes) are read by Claude through the API — this is"
 say "separate from your Claude.ai subscription and is billed per use (a few dollars a month at your volume)."
 open_url "https://console.anthropic.com/settings/keys"
-step "Sign in / create the Console account with bstone@teamksi.com and add a payment method when asked."
-step "Click 'Create Key', name it 'virginia', copy the key (it is shown only once)."
+step "Sign in / create the Console account with your work email and add a payment method when asked."
+step "Click 'Create Key', name it after your assistant, copy the key (it is shown only once)."
 ask_secret ANTHROPIC_API_KEY "Paste the API key (starts with sk-ant-):"
 [[ "$ANTHROPIC_API_KEY" == sk-ant-* ]] || warn "that does not look like an Anthropic key, but continuing"
 write_env ANTHROPIC_API_KEY "$ANTHROPIC_API_KEY"
@@ -282,6 +282,24 @@ open_url "https://console.anthropic.com/settings/limits"
 step "On the Limits (or Billing → Spend limits) page, set a monthly limit — 25 USD is plenty to start."
 note "If the page layout differs, look under Settings → Billing for 'spend limit'."
 pause "Spend limit set? Press Enter."
+
+# ── 4b ────────────────────────────────────────────────────────────────────
+stage "Email for the 7 am brief (Resend)"
+say "The app emails you a morning brief. It sends only to you, never on your behalf, through a small"
+say "email service called Resend. Free tier, no IT involvement, about five minutes."
+open_url "https://resend.com/signup"
+step "Sign up with your work email, verify it, then go to API Keys → Create API Key (name it after your assistant, 'Sending access')."
+ask_secret RESEND_API_KEY "Paste the Resend API key (starts with re_):"
+[[ -z "$RESEND_API_KEY" || "$RESEND_API_KEY" == re_* ]] || warn "that does not look like a Resend key, but continuing"
+if [[ -n "$RESEND_API_KEY" ]]; then write_env RESEND_API_KEY "$RESEND_API_KEY"; else note "skipped — the brief will show in the app only until a key is added"; fi
+DEFAULT_TO=$(node -e 'try{const c=require("./assistant.config.json");process.stdout.write(c.owner&&c.owner.email?c.owner.email:"")}catch(e){}' 2>/dev/null || true)
+[[ -n "$DEFAULT_TO" && -z "$(_existing BRIEF_EMAIL_TO || true)" ]] && write_env BRIEF_EMAIL_TO "$DEFAULT_TO"
+ask BRIEF_EMAIL_TO "Send the brief to which address?"
+write_env BRIEF_EMAIL_TO "$BRIEF_EMAIL_TO"
+write_env BRIEF_TIME "07:00"
+write_env BRIEF_DAYS "weekdays"
+note "BRIEF_TIME and BRIEF_DAYS are set to 07:00 on weekdays; change them in .env / Railway later if you like."
+pause
 
 # ── 5 ─────────────────────────────────────────────────────────────────────
 stage "Railway: account and project from the GitHub repo"
@@ -310,6 +328,10 @@ if confirm "Show the values on screen now (they include your secrets)?"; then
   printf '  MCP_TOKEN=%s\n'         "$(_existing MCP_TOKEN || true)"
   printf '  ANTHROPIC_API_KEY=%s\n' "$(_existing ANTHROPIC_API_KEY || true)"
   printf '  ANTHROPIC_MODEL=%s\n'   "$(_existing ANTHROPIC_MODEL || echo claude-opus-5-5)"
+  printf '  RESEND_API_KEY=%s\n'    "$(_existing RESEND_API_KEY || true)"
+  printf '  BRIEF_EMAIL_TO=%s\n'    "$(_existing BRIEF_EMAIL_TO || true)"
+  printf '  BRIEF_TIME=%s\n'        "$(_existing BRIEF_TIME || echo 07:00)"
+  printf '  BRIEF_DAYS=%s\n'        "$(_existing BRIEF_DAYS || echo weekdays)"
   printf '  DATA_DIR=/data\n'
   printf '  NODE_ENV=production\n'
   printf '%s\n' "$RESET"
@@ -355,8 +377,8 @@ pause "Connector added and enabled? Press Enter."
 stage "Phone install and first import"
 open_url "$APP_URL"
 step "Log in with your passphrase. On iPhone: Share → 'Add to Home Screen' → Virginia."
-step "Settings → Import → drop 'Brandon Runnign Brain Dump.xlsm' → review the preview → Commit."
-step "Settings → People: fix any direct report's brand, add Brooke Dando / Cabinets Express if you want them."
+step "Settings → Import → drop your existing to-do spreadsheet (.xlsx/.xlsm/.csv) → review the preview → Commit."
+step "Settings → People: check each person's brand; add anyone missing from assistant.config.json."
 note "Daily flow: record a voice memo → tap its transcript → copy → open Virginia → Capture → paste → Review → accept."
 pause "All set? Press Enter to finish."
 

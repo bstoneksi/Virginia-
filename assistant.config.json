@@ -1,0 +1,51 @@
+{
+  "assistant": {
+    "name": "Virginia",
+    "tagline": "Executive assistant tracker"
+  },
+  "owner": {
+    "fullName": "Brandon Stone",
+    "initials": "BS",
+    "email": "bstone@teamksi.com",
+    "role": "CEO",
+    "timezone": "America/Detroit"
+  },
+  "organization": {
+    "name": "KSI Family of Brands",
+    "shortName": "KSI"
+  },
+  "branding": {
+    "themeColor": "#1B2A49",
+    "accentColor": "#1B325E"
+  },
+  "personalDivisionCode": "PTD",
+  "defaultInitiative": "BAU",
+  "divisions": [
+    { "code": "K&B", "name": "KSI Kitchen & Bath", "kind": "brand", "parentCode": null, "color": "#1B2A49", "textColor": "#FFFFFF", "sortOrder": 10 },
+    { "code": "K&B-S", "name": "K&B Sales", "kind": "brand", "parentCode": "K&B", "color": "#24406E", "textColor": "#FFFFFF", "sortOrder": 11 },
+    { "code": "K&B-I", "name": "K&B Installation", "kind": "brand", "parentCode": "K&B", "color": "#2C4F87", "textColor": "#FFFFFF", "sortOrder": 12 },
+    { "code": "K&B-O", "name": "K&B Operations", "kind": "brand", "parentCode": "K&B", "color": "#355FA0", "textColor": "#FFFFFF", "sortOrder": 13 },
+    { "code": "APP", "name": "KSI Appliances", "kind": "brand", "parentCode": null, "color": "#6C3FA0", "textColor": "#FFFFFF", "sortOrder": 20 },
+    { "code": "HG", "name": "Henderson Glass", "kind": "brand", "parentCode": null, "color": "#C0392B", "textColor": "#FFFFFF", "sortOrder": 30 },
+    { "code": "PF", "name": "Paramount Fence", "kind": "brand", "parentCode": null, "color": "#1E6B3A", "textColor": "#FFFFFF", "sortOrder": 40 },
+    { "code": "RF", "name": "Riemer Floors", "kind": "brand", "parentCode": null, "color": "#1F1F1F", "textColor": "#FFFFFF", "sortOrder": 50 },
+    { "code": "TS", "name": "TrueScale Studio", "kind": "brand", "parentCode": null, "color": "#E67E22", "textColor": "#1F1F1F", "sortOrder": 60 },
+    { "code": "FOB", "name": "Family of Brands (Corporate)", "kind": "function", "parentCode": null, "color": "#3A3A3A", "textColor": "#FFFFFF", "sortOrder": 70 },
+    { "code": "ACC", "name": "Accounting / Finance", "kind": "function", "parentCode": null, "color": "#556270", "textColor": "#FFFFFF", "sortOrder": 80 },
+    { "code": "S&M", "name": "Sales & Marketing", "kind": "function", "parentCode": null, "color": "#4A7C8C", "textColor": "#FFFFFF", "sortOrder": 90 },
+    { "code": "PTD", "name": "Personal", "kind": "personal", "parentCode": null, "color": "#B08968", "textColor": "#FFFFFF", "sortOrder": 100 }
+  ],
+  "people": [
+    { "initials": "PH", "fullName": "Patrick Hatch", "divisionCode": null, "email": null, "role": null },
+    { "initials": "DK", "fullName": "David Karras", "divisionCode": null, "email": null, "role": null },
+    { "initials": "AG", "fullName": "Amanda Gentner", "divisionCode": "FOB", "email": null, "role": null },
+    { "initials": "DJ", "fullName": "Darren Johnston", "divisionCode": null, "email": null, "role": null },
+    { "initials": "MN", "fullName": "Matthew Norton", "divisionCode": null, "email": "mnorton@teamksi.com", "role": null },
+    { "initials": "SB", "fullName": "Steve Bevel", "divisionCode": "RF", "email": "steve.bevel@riemerfloors.com", "role": null },
+    { "initials": "VM", "fullName": "Vincent Moynihan", "divisionCode": "HG", "email": "vince.moynihan@hendersonglass.com", "role": null },
+    { "initials": "JM", "fullName": "Joshua Miller", "divisionCode": null, "email": "josh.miller@teamksi.com", "role": null },
+    { "initials": "MR", "fullName": "Mark Renn", "divisionCode": null, "email": "mrenn@teamksi.com", "role": null },
+    { "initials": "AN", "fullName": "Amanda Norton", "divisionCode": null, "email": null, "role": null },
+    { "initials": "JR", "fullName": "Jennifer Rankin", "divisionCode": null, "email": null, "role": null }
+  ]
+}

@@ -1,6 +1,6 @@
 # Issue tracker: GitHub
 
-> **Status (2026-09-30):** this repo has no GitHub remote yet and `gh` is not installed on this machine. Until stage 2 of `docs/SETUP-WIZARD.sh` has created and pushed the repo, and `winget install GitHub.cli` + `gh auth login` have run, skills that need the tracker should stop and say so rather than fall back to another store. The first issue to file once it works is `docs/PRODUCT-SPEC.md` with the `ready-for-agent` label.
+> **Status (2026-09-30):** this repo has no GitHub remote yet and `gh` is not installed on this machine. Until stage 2 of `docs/SETUP-WIZARD.sh` has created and pushed the repo, and `winget install GitHub.cli` + `gh auth login` have run, skills that need the tracker should stop and say so rather than fall back to another store. The first issue to file once it works is `docs/example-instance/PRODUCT-SPEC.md` with the `ready-for-agent` label.
 
 Issues and specs for this repo live as GitHub issues. Use the `gh` CLI for all operations.
 

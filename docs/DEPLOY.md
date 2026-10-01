@@ -1,9 +1,13 @@
-# Deploying and running Virginia
+# Deploying and running your instance
+
+The app's name, your name, roster and brands come from `assistant.config.json` (see `ONBOARDING.md`). Everything below is the same for every instance.
 
 ## Run it locally (no accounts needed)
 
 ```bash
 npm install
+cp assistant.config.example.json assistant.config.json   # fill in your details, then:
+npm run config:apply
 cp .env.example .env        # then edit: set DISABLE_AUTH=1 for a quick local look, or set APP_PASSWORD + SESSION_SECRET
 npm run dev                 # API on http://localhost:3000, UI on http://localhost:5173
 ```
@@ -15,16 +19,16 @@ npm run build
 npm start                   # serves API + built client on http://localhost:3000
 ```
 
-Data lives in `./data/virginia.db` (SQLite). Back it up by copying that file while the server is stopped, or use the volume snapshot on Railway.
+Data lives in `./data/virginia.db` (SQLite, the file name is the same in every instance). Back it up by copying that file while the server is stopped, or use the volume snapshot on Railway.
 
 Without `ANTHROPIC_API_KEY` the Capture screen still works for explicitly tagged lines (`A:VM …`, `NB:SB …`); untagged transcripts and photos need the key.
 
-## Deploy to Railway (one service + one volume)
+## Deploy to Railway (one service + one volume per person)
 
 Prerequisites: a GitHub repo containing this code, a Railway account, an Anthropic API key. `docs/SETUP-WIZARD.sh` walks through creating all three.
 
 1. **Railway → New Project → Deploy from GitHub repo** → pick the repo. Railway detects the `Dockerfile` (via `railway.json`).
-2. **Add a volume**: service → *Settings → Volumes → Add volume*, mount path `/data`. This is where `virginia.db` and uploaded photos live. Without it, data is wiped on every deploy.
+2. **Add a volume**: service → *Settings → Volumes → Add volume*, mount path `/data`. This is where the database and uploaded photos live. Without it, data is wiped on every deploy.
 3. **Variables** (service → *Variables*):
 
    | Variable | Value |
@@ -34,26 +38,30 @@ Prerequisites: a GitHub repo containing this code, a Railway account, an Anthrop
    | `ANTHROPIC_API_KEY` | from console.anthropic.com |
    | `ANTHROPIC_MODEL` | `claude-opus-5-5` (default; `claude-sonnet-5-5` is cheaper) |
    | `MCP_TOKEN` | 32+ random characters; this becomes part of the connector URL |
+   | `RESEND_API_KEY` | from resend.com (free tier); enables the emailed morning brief. Leave unset to keep the brief in the app only |
+   | `BRIEF_EMAIL_TO` | the address the brief is sent to (your own) |
+   | `BRIEF_TIME` | `07:00` (local time in your configured timezone) |
+   | `BRIEF_DAYS` | `weekdays` or `daily` |
    | `DATA_DIR` | `/data` (already set in the Dockerfile; set it here too for clarity) |
    | `NODE_ENV` | `production` |
 
-   `PORT` is injected by Railway automatically.
+   `PORT` is injected by Railway automatically. `assistant.config.json` is committed in your own repo, so the deploy picks it up; `ASSISTANT_CONFIG` can point at another path if you ever need to.
 4. **Networking**: *Settings → Networking → Generate Domain*. Open `https://<your-domain>/api/health` — you should see `{"ok":true,...}`.
 5. Open the domain on your phone, log in, then *Share → Add to Home Screen* to install it as an app.
 6. **Health check** is configured at `/api/health` in `railway.json`; deploys wait for it.
 
 Redeploys happen automatically on every push to the default branch.
 
-## Connect the Virginia project in Claude
+## Connect your Claude.ai project
 
 1. Claude.ai → *Settings → Connectors → Add custom connector*.
-2. Name: `Virginia tracker`. URL: `https://<your-domain>/mcp/<MCP_TOKEN>` (the token is the secret; never paste this URL anywhere public). The app shows this exact URL under *Settings → Connector* with a Copy button, so you never have to assemble it by hand. No OAuth or extra header is needed.
-3. In the *Virginia - Executive Assistant* project, enable the connector. Claude can then call `list_items`, `add_items`, `update_item`, `get_agenda`, `get_today`, `search`, `list_reference`, `add_brief`.
+2. Name it after your assistant. URL: `https://<your-domain>/mcp/<MCP_TOKEN>` (the token is the secret; never paste this URL anywhere public). The app shows this exact URL under *Settings → Connector* with a Copy button, so you never have to assemble it by hand. No OAuth or extra header is needed.
+3. In your Claude project (instructions template: `docs/CLAUDE-PROJECT-TEMPLATE.md`), enable the connector. Claude can then call `list_items`, `add_items`, `update_item`, `get_agenda`, `get_today`, `search`, `list_reference`, `add_brief`.
 4. Rotate the token any time by changing `MCP_TOKEN` in Railway and updating the connector URL.
 
-## Import the Brain Dump
+## Import an existing spreadsheet
 
-Settings → Import → drop `Brandon Runnign Brain Dump.xlsm` → check the preview (fix any unmatched division/person) → Commit. Rows land as items with the right category (New Business → NB, Action Items → A, Watch List → W, Parking Lot → status Parked).
+Settings → Import → drop your to-do workbook (`.xlsx`, `.xlsm` or `.csv`; tables with `Date | Note | Division | Owner/Target | Priority | Due Date | Status` headers are detected automatically) → check the preview (fix any unmatched division/person) → Commit. Table names map to categories (New Business → NB, Action Items → A, Watch List → W, Parking Lot → status Parked).
 
 ## Updating the app
 
@@ -61,4 +69,4 @@ Any change pushed to GitHub redeploys. To work on it with Claude Code later: ope
 
 ## Backups
 
-Railway → service → *Volumes* → snapshots (paid plans) — or, once a week, download the database: Settings → (planned) *Export*. Until an export button exists, use the Railway CLI: `railway ssh` then `sqlite3 /data/virginia.db ".backup /data/backup.db"` and `railway volume` tooling, or simply keep the Brain Dump import file as your baseline.
+Railway → service → *Volumes* → snapshots (paid plans) — or, once a week, download the database: use the Railway CLI (`railway ssh` then `sqlite3 /data/virginia.db ".backup /data/backup.db"`), or keep your import spreadsheet as the baseline.

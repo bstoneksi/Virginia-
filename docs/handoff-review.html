@@ -53,16 +53,20 @@
 </header>
 <main>
   <h1>Virginia — handoff to your teammate</h1>
-  <p class="lead">Two documents will go to him. Read them here, then answer the short question card back in Claude Code: share as drafted, or tell me what to change.</p>
+  <p class="lead">Two documents will go to him. Read them here; the sending decisions (T1–T4) are on the Round 2 page.</p>
 
   <div class="panel">
     <strong>What he receives</strong>
     <ul>
       <li><strong>A link</strong> to the onboarding guide (first tab below). He opens it in Claude Code; his Claude reads it and knows what not to redo.</li>
-      <li><strong>The code</strong> as <code>virginia-starter.zip</code> — the whole project without your data, your <code>.env</code>, or any secrets. Send it over Teams or OneDrive, or push to GitHub later and give him the repo instead.</li>
+      <li><strong>The code</strong> as a template zip built by <code>scripts/make-template.sh</code>: the whole project with a blank <code>assistant.config.json</code> to fill in, without your data, your <code>.env</code>, or any secrets. Send it over Teams or OneDrive, or push to GitHub later and share the template repository instead.</li>
       <li><strong>A template</strong> for his own claude.ai project instructions (second tab), so his chat assistant speaks the same tag grammar as the app.</li>
     </ul>
-    <strong>What he does not receive</strong>: your tracker data, your roster answers, your passwords, API key or connector token, and the Round 1/Round 2 decision pages (he gets the questions as a list and makes his own page).
+    <strong>What he does not receive</strong>: your tracker data, your passwords, API key or connector token, and your Round 1/Round 2 decision pages. Your scoping and spec documents go along as a worked example unless you say otherwise (decision T3 on the Round 2 page).
+  </div>
+  <div class="panel">
+    <strong>Your note to Darren (drafted for Teams; send it yourself)</strong>
+    <blockquote style="border-left:4px solid var(--navy); margin:10px 0 0; padding:8px 14px; background:var(--white); max-width:78ch;">Darren — here’s the assistant tracker I’ve been building with Claude (mine is called Virginia). You can make your own copy and call it whatever you like. Two things: 1) The code (zip attached). Unzip it into a folder and open that folder in Claude Code. 2) The onboarding link below. Open it in Claude Code first; it tells Claude what’s already built so it doesn’t redo it. It walks you through: one settings file with your name, your people and your brands; a short list of workflow questions; the accounts you’ll need (GitHub, Railway at about $5/month, an Anthropic API key with a spend limit); and a template for your own Claude project. Budget about an hour the first time. Nothing it does touches your email or sends anything on your behalf. Ping me if you get stuck. — Brandon</blockquote>
   </div>
 
   <div class="tabs">

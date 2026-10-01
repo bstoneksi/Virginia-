@@ -56,20 +56,20 @@
       <img src="https://ksikitchens.com/wp-content/uploads/2022/10/ksi_logo-blue.svg" alt="KSI" onerror="this.style.display='none'" />
       <span class="fob">KSI Family of Brands</span>
     </a>
-    <div class="progress"><b id="count">0</b> of 5 answered</div>
+    <div class="progress"><b id="count">0</b> of 9 answered</div>
   </div>
 </header>
 
 <main>
   <h1>Virginia — Round 2</h1>
-  <p class="lead">Thanks for the Round 1 answers. Thirteen of them match what is built. Two change the plan and are being built now: rows per brand or person on the board (Q6), and a 7 am brief in the app and by email (Q14). Below: answers to your two questions, what is still needed, and five short decisions.</p>
+  <p class="lead">Thanks for the Round 1 answers. Thirteen match what is built. Two change the plan: rows per brand or person on the board (Q6, being added now) and a 7 am brief in the app and by email (Q14, built from your answers below). Then there is the team template: your colleague's idea is the right one, and it is being set up now. Below: answers to your questions, what is still needed, and nine short decisions.</p>
 
   <h2>Your questions, answered</h2>
 
   <div class="panel">
     <h3 class="sub" style="margin-top:0">What a kanban board is (Q6)</h3>
     <p>A kanban board is a board with one column per stage: Open, In Progress, Parked, Done. Every item is a card. You drag a card to the next column as the work moves along, and up or down to set its order. That is all "kanban" means.</p>
-    <p><strong>What you asked for</strong> is the same board split into rows, one row per brand or per person, so you can see each person's cards across all stages at once. That is being added as a <strong>Group by</strong> switch at the top of the board: None, Brand, or Person. The filters you already have (brand, person, category, personal, text) still work on top of it, and the board remembers your last choice.</p>
+    <p><strong>What you asked for</strong> is the same board split into rows, one row per brand or per person, so you can see each person's cards across all stages at once. That is being added as a <strong>Group by</strong> switch at the top of the board: None, Brand, or Person. The filters you already have (brand, person, category, personal, text) still work on top of it, and the board remembers your last choice. People and Brands pages stay as they are.</p>
   </div>
 
   <div class="panel">
@@ -81,7 +81,14 @@
   </div>
 
   <div class="panel">
-    <h3 class="sub" style="margin-top:0">Still needed to make it fully working</h3>
+    <h3 class="sub" style="margin-top:0">The team template (your colleague's question)</h3>
+    <p>Yes, a starting version everyone can copy is the right move, and it is being built now. Everything personal (the assistant's name, you, your roster, the brands you file under, timezone, colors) moves into one file, <code>assistant.config.json</code>. A teammate copies the template, fills in that file, and has a working app in about ten minutes without rebuilding anything. Their Claude Code session then spends its effort only on what is different for them: other systems to connect, other words for statuses, a different first screen.</p>
+    <p>What they get: the code as a zip (or, once KSI has a GitHub organization, a "Use this template" button), an onboarding guide written for their Claude session, a template for their own Claude.ai project instructions, and your scoping documents as a worked example. What they do not get: your data, your passwords, your API key or connector link.</p>
+    <p>Each person runs their own copy (their own Railway service, about $5 a month, and their own Anthropic key). Nothing is shared between copies, so one person's changes never break another's.</p>
+  </div>
+
+  <div class="panel">
+    <h3 class="sub" style="margin-top:0">Still needed to make yours fully working</h3>
     <ol>
       <li>GitHub account and repository, then push the code <span class="tag you">you, via the wizard</span></li>
       <li>Railway account, project from the repo, storage volume, settings <span class="tag you">you, via the wizard</span></li>
@@ -95,7 +102,7 @@
     <p>The wizard is <code>docs/SETUP-WIZARD.sh</code> in the project folder. Run it in Git Bash with <code>bash docs/SETUP-WIZARD.sh</code>; it opens each site and tells you what to click.</p>
   </div>
 
-  <h2>Five more decisions</h2>
+  <h2>Decisions</h2>
   <div id="questions"></div>
 
   <h2>Your answers as text</h2>
@@ -134,6 +141,21 @@ const QUESTIONS = [
   { id: "R5", title: "The IT request", ask: "Should I write the request to Doug/Rob for you to send?", opts: [
     "Yes, draft it; I will send it",
     "No, I will handle it" ] },
+  { id: "T1", title: "How the team gets the template", ask: "Darren first, then anyone else who wants one.", opts: [
+    "A zip now (send it over Teams or OneDrive) and a GitHub template later, once KSI has a GitHub organization",
+    "GitHub only: wait until the organization exists, then share the template button",
+    "Zip only, no GitHub" ] },
+  { id: "T2", title: "Who pays for hosting and Claude usage", ask: "Each copy costs about $5 a month on Railway plus a few dollars of Claude API use.", opts: [
+    "Each person sets up their own Railway and Anthropic accounts with their KSI email (simplest, each one sees their own bill)",
+    "One KSI Railway account and one KSI Anthropic organization with a key per person (one bill, IT or you manage it)",
+    "Decide later" ] },
+  { id: "T3", title: "What the template includes from your copy", ask: "Your scoping and spec documents help a teammate's Claude understand why things are the way they are. Your tracker data, passwords and keys are never included.", opts: [
+    "Include my scoping and decision documents as the worked example",
+    "Strip everything about my instance; code and generic docs only" ] },
+  { id: "T4", title: "Send it to Darren", ask: "When the template is packaged, how should it reach him?", opts: [
+    "I will send the zip and the onboarding link myself (you give me both)",
+    "Put the zip in my OneDrive and give me a share link to forward",
+    "Hold it; I want to look first" ] },
 ];
 const LETTERS = "abcdefgh"; const KEY = "virginia-round2-answers";
 let state = {}; try { state = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { state = {}; }

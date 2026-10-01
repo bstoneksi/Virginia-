@@ -1,8 +1,11 @@
-# Virginia
+# KSI assistant tracker
 
-Brandon Stone's executive-assistant tracker (KSI Family of Brands). Start with `README.md`;
-the build contract is `docs/SPEC.md`, product intent is `docs/PRODUCT-SPEC.md` and `docs/SCOPE.md`.
-Run `npm run check` (typecheck + tests + build) before calling anything done.
+Executive-assistant tracker template (KSI Family of Brands); each person runs their own instance personalized
+from `assistant.config.json`. Start with `README.md` and `ONBOARDING.md`; the build contract is `docs/SPEC.md`;
+this instance's decisions are logged in `docs/DECISIONS.md`; the first instance's scoping lives in
+`docs/example-instance/` (reference, not the current product intent).
+Run `npm run check` (typecheck + tests + build) before calling anything done. Never commit `.env`,
+`assistant.config.local.json` or `data/`.
 
 ## Agent skills
 

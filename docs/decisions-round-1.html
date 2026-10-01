@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Virginia — your decisions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --navy: #1B325E;
+    --navy-dark: #142549;
+    --ink: #4E4E4F;
+    --ink-strong: #2B2B2C;
+    --line: #DDE1E8;
+    --panel: #F4F5F7;
+    --ok: #1E6B3A;
+    --ok-bg: #E6F4EA;
+    --white: #FFFFFF;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--white); color: var(--ink); font-family: "Open Sans", Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.5; }
+  header { border-bottom: 3px solid var(--navy); background: var(--white); position: sticky; top: 0; z-index: 5; }
+  .bar { max-width: 960px; margin: 0 auto; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .logo { display: flex; align-items: center; gap: 14px; text-decoration: none; }
+  .logo img { height: 44px; width: auto; display: block; }
+  .logo .fob { color: var(--ink); font-size: 13px; letter-spacing: .02em; }
+  .progress { font-size: 14px; color: var(--ink); }
+  .progress b { color: var(--navy); }
+  main { max-width: 960px; margin: 0 auto; padding: 28px 20px 120px; }
+  h1 { color: var(--navy); font-weight: 400; font-size: 30px; margin: 0 0 6px; }
+  h2 { color: var(--navy); font-weight: 600; font-size: 20px; margin: 36px 0 12px; }
+  .lead { margin: 0 0 20px; max-width: 70ch; }
+  .panel { background: var(--panel); border-left: 4px solid var(--navy); padding: 16px 18px; margin: 0 0 8px; }
+  .panel ul { margin: 8px 0 0; padding-left: 20px; }
+  .panel li { margin: 4px 0; }
+  .panel a { color: var(--navy); font-weight: 600; }
+  .q { border: 1px solid var(--line); padding: 18px 18px 14px; margin: 0 0 14px; background: var(--white); }
+  .q.answered { border-color: var(--navy); }
+  .q .num { display: inline-block; background: var(--navy); color: var(--white); font-weight: 600; font-size: 13px; padding: 2px 8px; margin-right: 8px; }
+  .q h3 { display: inline; color: var(--ink-strong); font-size: 17px; font-weight: 600; margin: 0; }
+  .q p { margin: 10px 0 12px; }
+  .opts { display: flex; flex-direction: column; gap: 8px; }
+  .opt { text-align: left; background: var(--white); border: 1px solid var(--line); padding: 10px 14px; font: inherit; color: var(--ink-strong); cursor: pointer; display: flex; gap: 10px; align-items: flex-start; min-height: 44px; }
+  .opt:hover { border-color: var(--navy); }
+  .opt .k { color: var(--navy); font-weight: 700; min-width: 1.4em; }
+  .opt.selected { background: var(--navy); color: var(--white); border-color: var(--navy); }
+  .opt.selected .k { color: var(--white); }
+  .opt .rec { margin-left: auto; font-size: 12px; font-weight: 600; color: var(--ok); background: var(--ok-bg); padding: 1px 8px; white-space: nowrap; align-self: center; }
+  .opt.selected .rec { color: var(--white); background: rgba(255,255,255,.18); }
+  .own { margin-top: 10px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .own label { font-size: 14px; color: var(--ink); }
+  .own input { flex: 1; min-width: 240px; font: inherit; padding: 9px 12px; border: 1px solid var(--line); min-height: 44px; }
+  .own input:focus { outline: 2px solid var(--navy); outline-offset: 0; }
+  .actions { position: fixed; bottom: 0; left: 0; right: 0; background: var(--white); border-top: 1px solid var(--line); box-shadow: 0 -4px 16px rgba(0,0,0,.06); }
+  .actions .bar { padding: 12px 20px; }
+  .btn { font: inherit; font-weight: 600; min-height: 44px; padding: 10px 18px; cursor: pointer; border: 1px solid var(--navy); background: var(--white); color: var(--navy); }
+  .btn.primary { background: var(--navy); color: var(--white); }
+  .btn.primary:hover { background: var(--navy-dark); }
+  .btn:disabled { opacity: .5; cursor: default; }
+  .status { font-size: 14px; color: var(--ok); min-height: 1.2em; }
+  textarea.out { width: 100%; min-height: 220px; font: 14px/1.45 ui-monospace, Consolas, monospace; padding: 12px; border: 1px solid var(--line); margin-top: 10px; color: var(--ink-strong); }
+  .muted { color: var(--ink); font-size: 14px; }
+  @media (max-width: 640px) { h1 { font-size: 24px; } .bar { flex-wrap: wrap; } .actions .bar { gap: 8px; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <a class="logo" href="https://ksikitchens.com" target="_blank" rel="noopener">
+      <img src="https://ksikitchens.com/wp-content/uploads/2022/10/ksi_logo-blue.svg" alt="KSI" onerror="this.style.display='none'" />
+      <span class="fob">KSI Family of Brands</span>
+    </a>
+    <div class="progress"><b id="count">0</b> of 15 answered</div>
+  </div>
+</header>
+
+<main>
+  <h1>Virginia — your decisions</h1>
+  <p class="lead">The first version of Virginia is built on the answers marked <em>Recommended</em>. Click an answer for each question, or type your own. Then press <strong>Copy my answers</strong> and paste the text into the Claude Code chat.</p>
+
+  <div class="panel">
+    <strong>Check these first (5 minutes)</strong>
+    <ul>
+      <li>The app is running at <a href="http://localhost:3000" target="_blank" rel="noopener">localhost:3000</a> with no login (local only). Sample data is marked "Sample data".</li>
+      <li>Board: drag the Henderson Glass card into In Progress, reload, it should stay.</li>
+      <li>Capture: one sample is waiting. Open Review, accept one line, then Accept all. Check People → VM and Copy agenda.</li>
+      <li>Settings → Import is where the Brain Dump file goes. Settings → Connector shows the Claude connector link once deployed.</li>
+      <li>Status: 196 automated tests pass, 42-step end-to-end check passed, 20 reviewer findings fixed. Still needed from you: GitHub, Railway and an Anthropic key (the setup wizard walks you through), and IT for email write access.</li>
+    </ul>
+  </div>
+
+  <h2>Decisions</h2>
+  <div id="questions"></div>
+
+  <h2>Your answers as text</h2>
+  <p class="muted">This updates as you click. The button below copies it for you.</p>
+  <textarea class="out" id="out" readonly></textarea>
+</main>
+
+<div class="actions">
+  <div class="bar">
+    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+      <button class="btn primary" id="copy">Copy my answers</button>
+      <button class="btn" id="acceptAll">Accept all recommendations</button>
+      <button class="btn" id="clear">Clear</button>
+    </div>
+    <div class="status" id="status"></div>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = [
+  { id: 1, title: "Where the app lives", ask: "Where should Virginia be hosted?", opts: [
+    "Railway, one service with a storage volume, under your KSI email (about $5/month)",
+    "Railway with a separate Postgres database",
+    "Somewhere else (Azure, since you are a Microsoft shop)" ] },
+  { id: 2, title: "How you log in", ask: "How should the app be protected?", opts: [
+    "One passphrase; your devices stay signed in for about 90 days",
+    "Microsoft sign-in (needs IT to register the app)",
+    "Passphrase now, Microsoft sign-in later when direct reports get access" ] },
+  { id: 3, title: "How notes get in", ask: "Where should you be able to add captures?", opts: [
+    "Both: paste or upload inside the app, and the Virginia project in Claude writes to the same tracker",
+    "Only inside the app",
+    "Only through the Virginia project in Claude chat" ] },
+  { id: 4, title: "Status columns", ask: "Which statuses should the board use?", opts: [
+    "Open · In Progress · Parked · Done (Parking Lot becomes the Parked column)",
+    "Open · Parked · Done",
+    "Keep both vocabularies (Not Started / In Progress / Complete and Open / Parked / Addressed)" ] },
+  { id: 5, title: "Tags", ask: "Keep the six tags (Action, Question, Idea, Decision, Watch, New Business) with Parking Lot as a status rather than a list?", opts: [
+    "Yes",
+    "No, keep the four Brain Dump lists as the main grouping" ] },
+  { id: 6, title: "Board layout", ask: "How should the kanban be laid out?", opts: [
+    "Columns by status; drag to move; priority shown as a badge; filters for brand, person, category",
+    "Columns by priority",
+    "Swimlanes per person or per brand" ] },
+  { id: 7, title: "First screen on your phone", ask: "Today = overdue items, due this week, your high-priority items, items with no owner, plus the inbox count. Is that the right landing page?", opts: [
+    "Yes, Today on the phone, Board on the desktop",
+    "Open on the Board everywhere",
+    "A different mix (type it below)" ] },
+  { id: 8, title: "Sharing with direct reports", ask: "What should sharing look like in this first version?", opts: [
+    "Copy or print an agenda per person now; live shared pages later",
+    "A read-only link per person now",
+    "Direct reports log in and add or close items now" ] },
+  { id: 9, title: "Untagged lines", ask: "When a transcript line has no tag, what should happen?", opts: [
+    "Claude guesses the category and marks it \"inferred\" so you glance at it in Review",
+    "Ignore anything without a tag" ] },
+  { id: 10, title: "Voice memos", ask: "How should voice memos get in?", opts: [
+    "Record in iPhone Voice Memos, copy its transcript, paste into Capture",
+    "Upload the audio and let the app transcribe it (needs a separate speech service)",
+    "Keep saying \"Virginia\" in Claude chat" ] },
+  { id: 11, title: "Email routine", ask: "Every two hours in business hours, what should the email routine do? (Flagging and drafting need IT to grant write access first. Nothing ever gets sent.)", opts: [
+    "Start the read-only digest now (7 am to 6 pm weekdays) into the app's Briefs page; add flagging and drafts once IT grants access",
+    "Wait for IT, then turn everything on at once",
+    "Digest only, never flag or draft" ], own: "Hours, and which replies Virginia may draft (e.g. thank-yous, scheduling confirmations)" },
+  { id: 12, title: "Old notes", ask: "What should be imported?", opts: [
+    "Import the Brain Dump now; skip the master tracker's Log history",
+    "Import both the Brain Dump and the Log history",
+    "Start clean" ] },
+  { id: 13, title: "People and brands", ask: "Who should be in the roster at the start?", opts: [
+    "The 11 direct reports and brands from your Virginia project; you add Cabinets Express or Brooke in Settings if you want them",
+    "Add Cabinets Express and Brooke Dando now",
+    "A different list (type it below)" ] },
+  { id: 14, title: "Notifications", ask: "Should the app notify you?", opts: [
+    "Not yet; decide after two weeks of use",
+    "A daily 7 am brief inside the app",
+    "A daily brief by email or Teams" ] },
+  { id: 15, title: "Names in the tracker", ask: "The shared tracker scrubbed employee names. This app is private to you.", opts: [
+    "Keep real names; trim before sharing an agenda",
+    "Scrub employee names like the shared tracker" ] },
+];
+
+const LETTERS = "abcdefgh";
+const KEY = "virginia-round1-answers";
+let state = {};
+try { state = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { state = {}; }
+
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+function render() {
+  const host = document.getElementById("questions");
+  host.innerHTML = QUESTIONS.map(q => {
+    const a = state[q.id] || {};
+    const answered = a.choice !== undefined || (a.text && a.text.trim());
+    return `<section class="q ${answered ? "answered" : ""}" data-q="${q.id}">
+      <span class="num">Q${q.id}</span><h3>${esc(q.title)}</h3>
+      <p>${esc(q.ask)}</p>
+      <div class="opts">${q.opts.map((o, i) => `
+        <button type="button" class="opt ${a.choice === i ? "selected" : ""}" data-i="${i}" aria-pressed="${a.choice === i}">
+          <span class="k">${LETTERS[i]})</span><span>${esc(o)}</span>${i === 0 ? '<span class="rec">Recommended</span>' : ""}
+        </button>`).join("")}
+      </div>
+      <div class="own">
+        <label for="own-${q.id}">${esc(q.own || "Or type your own answer")}</label>
+        <input id="own-${q.id}" type="text" value="${esc(a.text || "")}" placeholder="Your words" />
+      </div>
+    </section>`;
+  }).join("");
+
+  host.querySelectorAll(".opt").forEach(btn => btn.addEventListener("click", () => {
+    const qid = Number(btn.closest(".q").dataset.q);
+    const i = Number(btn.dataset.i);
+    const cur = state[qid] || {};
+    state[qid] = { ...cur, choice: cur.choice === i ? undefined : i };
+    save(); render();
+  }));
+  host.querySelectorAll(".own input").forEach(inp => inp.addEventListener("input", () => {
+    const qid = Number(inp.closest(".q").dataset.q);
+    state[qid] = { ...(state[qid] || {}), text: inp.value };
+    save(); updateOut();
+  }));
+  updateOut();
+}
+
+function compile() {
+  const lines = ["Virginia — Round 1 answers (Brandon, " + new Date().toLocaleDateString("en-US", { timeZone: "America/Detroit" }) + ")", ""];
+  const open = [];
+  for (const q of QUESTIONS) {
+    const a = state[q.id] || {};
+    const parts = [];
+    if (a.choice !== undefined) parts.push(LETTERS[a.choice] + ") " + q.opts[a.choice] + (a.choice === 0 ? " [recommended]" : ""));
+    if (a.text && a.text.trim()) parts.push('own words: "' + a.text.trim() + '"');
+    if (!parts.length) { open.push("Q" + q.id); continue; }
+    lines.push("Q" + q.id + " " + q.title + ": " + parts.join(" — "));
+  }
+  if (open.length) { lines.push(""); lines.push("Not answered yet: " + open.join(", ")); }
+  return lines.join("\n");
+}
+
+function updateOut() {
+  document.getElementById("out").value = compile();
+  const n = QUESTIONS.filter(q => { const a = state[q.id] || {}; return a.choice !== undefined || (a.text && a.text.trim()); }).length;
+  document.getElementById("count").textContent = n;
+  document.querySelectorAll(".q").forEach(sec => {
+    const a = state[Number(sec.dataset.q)] || {};
+    sec.classList.toggle("answered", a.choice !== undefined || !!(a.text && a.text.trim()));
+  });
+}
+
+function flash(msg) {
+  const s = document.getElementById("status");
+  s.textContent = msg;
+  clearTimeout(flash.t);
+  flash.t = setTimeout(() => { s.textContent = ""; }, 4000);
+}
+
+document.getElementById("copy").addEventListener("click", async () => {
+  const text = compile();
+  try {
+    await navigator.clipboard.writeText(text);
+    flash("Copied. Paste it into the Claude Code chat.");
+  } catch (e) {
+    const out = document.getElementById("out");
+    out.focus(); out.select();
+    try { document.execCommand("copy"); flash("Copied. Paste it into the Claude Code chat."); }
+    catch (e2) { flash("Could not copy automatically. The text is selected below; press Ctrl+C."); }
+  }
+});
+document.getElementById("acceptAll").addEventListener("click", () => {
+  for (const q of QUESTIONS) {
+    const a = state[q.id] || {};
+    if (a.choice === undefined && !(a.text && a.text.trim())) state[q.id] = { ...a, choice: 0 };
+  }
+  save(); render(); flash("Recommended answers filled in for every open question.");
+});
+document.getElementById("clear").addEventListener("click", () => {
+  if (!confirm("Clear all answers on this page?")) return;
+  state = {}; save(); render(); flash("Cleared.");
+});
+
+render();
+</script>
+</body>
+</html>

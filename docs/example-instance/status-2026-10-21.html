@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Virginia — where we are</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root { --navy:#1B325E; --navy-dark:#142549; --ink:#4E4E4F; --ink-strong:#2B2B2C; --line:#DDE1E8; --panel:#F4F5F7; --ok:#1E6B3A; --ok-bg:#E6F4EA; --todo:#9A6B00; --todo-bg:#FFF8E1; --white:#FFFFFF; }
+  * { box-sizing:border-box; }
+  html, body { margin:0; background:var(--white); color:var(--ink); font-family:"Open Sans", Helvetica, Arial, sans-serif; font-size:16px; line-height:1.5; }
+  header { border-bottom:3px solid var(--navy); position:sticky; top:0; background:var(--white); z-index:5; }
+  .bar { max-width:900px; margin:0 auto; padding:14px 20px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
+  .logo { display:flex; align-items:center; gap:14px; text-decoration:none; } .logo img { height:44px; width:auto; } .logo .fob { color:var(--ink); font-size:13px; }
+  main { max-width:900px; margin:0 auto; padding:28px 20px 60px; }
+  h1 { color:var(--navy); font-weight:400; font-size:30px; margin:0 0 6px; }
+  h2 { color:var(--navy); font-weight:600; font-size:20px; margin:30px 0 10px; }
+  .lead { max-width:72ch; margin:0 0 16px; }
+  .panel { background:var(--panel); border-left:4px solid var(--navy); padding:14px 18px; margin:0 0 14px; } .panel ol, .panel ul { margin:8px 0 0; padding-left:22px; } .panel li { margin:7px 0; } .panel p { margin:6px 0; max-width:75ch; }
+  .links a { display:block; padding:10px 14px; border:1px solid var(--line); margin:8px 0; text-decoration:none; color:var(--navy); font-weight:600; background:var(--white); }
+  .links a span { display:block; font-weight:400; color:var(--ink); font-size:14px; }
+  .tag { display:inline-block; font-size:12px; font-weight:600; padding:1px 8px; margin-left:6px; vertical-align:middle; }
+  .tag.done { background:var(--ok-bg); color:var(--ok); } .tag.todo { background:var(--todo-bg); color:var(--todo); }
+  code { background:var(--panel); padding:0 5px; font-size:14px; }
+  .step { border:1px solid var(--line); padding:14px 18px; margin:0 0 12px; }
+  .step b { color:var(--navy); }
+</style>
+</head>
+<body>
+<header><div class="bar">
+  <a class="logo" href="https://ksikitchens.com" target="_blank" rel="noopener"><img src="https://ksikitchens.com/wp-content/uploads/2022/10/ksi_logo-blue.svg" alt="KSI" onerror="this.style.display='none'" /><span class="fob">KSI Family of Brands</span></a>
+  <div style="font-size:14px">October 21, 2026</div>
+</div></header>
+
+<main>
+  <h1>Virginia — where we are</h1>
+  <p class="lead">You were away three weeks. Nothing was lost. The app is running again on this PC, and the code, your decisions and the sample data are safe in <code>C:\Users\BSTONE\Projects\Virginia</code>. What remains is one-time account setup, about 45 minutes, none of it technical.</p>
+
+  <h2>Links</h2>
+  <div class="links">
+    <a href="http://localhost:3000" target="_blank" rel="noopener">The app (on this PC) → localhost:3000 <span>Login is off locally. Works only on this computer, only while it is running. The permanent address comes from Railway in the steps below.</span></a>
+    <a href="http://localhost:3900/docs/example-instance/round-1-2-results.html" target="_blank" rel="noopener">What to try in the app <span>Board rows per person, Capture → Review, agendas, the daily brief.</span></a>
+    <a href="http://localhost:3900/docs/example-instance/it-request.html" target="_blank" rel="noopener">The IT request email, ready to copy <span>Still needs sending: I can't find it in your sent mail, and the mailbox permission has not changed.</span></a>
+  </div>
+
+  <h2>What is done <span class="tag done">no action needed</span></h2>
+  <div class="panel">
+    <ul>
+      <li>The app is built and checked (297 automated checks pass): Today list, Board with rows per person, Capture → Review, an agenda per person, boards per brand, Settings, Excel import, the 7 am brief (in the app now; by email once Resend is set up), and the connector for your Claude project.</li>
+      <li>Your Round 1 and Round 2 answers are all applied.</li>
+      <li>The project lives in a permanent folder on this PC with its full history. The GitHub command-line tool is installed.</li>
+      <li>Your other two sessions packaged the app as a template for Darren and Brie and produced the onboarding link.</li>
+      <li>The IT request email is written.</li>
+    </ul>
+  </div>
+
+  <h2>What is left <span class="tag todo">you, about 45 minutes</span></h2>
+  <div class="panel">
+    <ol>
+      <li><b>GitHub</b> — an online copy of the code under KSI Holdings. 5 min.</li>
+      <li><b>Anthropic API key</b> — lets Claude read your transcripts and photos. 5 min, card on file, set a $25 monthly limit.</li>
+      <li><b>Resend</b> — lets the app email you the 7 am brief. 5 min, free.</li>
+      <li><b>Railway</b> — hosts the app so your phone can reach it. 15–20 min, about $5/month.</li>
+      <li><b>Connect your Virginia project in Claude</b> to the hosted app. 3 min.</li>
+      <li><b>Phone</b> — log in, Add to Home Screen, import the Brain Dump. 10 min.</li>
+      <li><b>Send the IT request</b> so flagging and drafts can be switched on later. 2 min, any time.</li>
+    </ol>
+    <p>Then mine: schedule the two-hour email digest and the 7 am brief once the app is live.</p>
+  </div>
+
+  <h2>Step by step, today</h2>
+  <div class="step"><b>Step A — say "start the wizard".</b> I open the setup wizard in the terminal panel beside this chat. It does items 1 to 6 above in order.</div>
+  <div class="step"><b>Step B — follow the wizard.</b> Each stage opens the right web page in your browser, tells you exactly what to click, and asks you to paste one thing back (an address or a key). Press Enter to move to the next stage. You can stop any time with Ctrl‑C and run it again later; it remembers what you already saved.
+    <p style="margin:8px 0 0">Have ready: your GitHub login (bstoneksi), a credit card for Anthropic and Railway, and your KSI email for Resend. In the GitHub stage, when the new-repository page asks for an Owner, pick <code>ksi-holdings</code>, name it <code>virginia</code>, and keep it Private.</p></div>
+  <div class="step"><b>Step C — tell me when the wizard finishes.</b> I check the live site, turn on the daily brief and the email digest, and give you the final address to bookmark and add to your phone.</div>
+  <div class="step"><b>Step D — any time: send the IT request</b> from the link above. When Doug or Rob confirms, tell me and I switch on flagging and drafts.</div>
+
+  <h2>If you only have ten minutes right now</h2>
+  <div class="panel"><p>Click around the app at <a href="http://localhost:3000" target="_blank" rel="noopener">localhost:3000</a> using the "what to try" page, and send the IT request. The wizard can wait for a longer sitting.</p></div>
+</main>
+</body>
+</html>
